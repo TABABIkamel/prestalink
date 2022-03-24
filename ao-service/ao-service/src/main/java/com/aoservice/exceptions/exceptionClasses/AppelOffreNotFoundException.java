@@ -1,4 +1,4 @@
-package com.aoservice.exceptions;
+package com.aoservice.exceptions.exceptionClasses;
 
 public class AppelOffreNotFoundException extends RuntimeException{
 

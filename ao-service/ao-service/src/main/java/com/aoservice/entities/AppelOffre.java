@@ -1,45 +1,114 @@
 package com.aoservice.entities;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import lombok.*;
 
 import javax.persistence.*;
-import java.util.ArrayList;
+
 import java.util.Date;
-import java.util.List;
-import java.util.Observer;
+
 
 @Entity
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter
-@Setter
-public class AppelOffre implements Observe {
+@EqualsAndHashCode
+public class AppelOffre {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
-    private Long id;
-    private String titreAo;
-    private Date dateDebutAo;
-    private Date dateFinAo;
-    private String descriptionAo;
-    private Float tjmAo;
+    public Long id;
+    public String titreAo;
+    public Date dateDebutAo;
+    public Date dateFinAo;
+    public String descriptionAo;
+    public Float tjmAo;
     @Enumerated(EnumType.STRING)
-    private Modalite modaliteAo;
-    List<Observer> observers = new ArrayList();
-    @Override
-    public void addObserver(Observe observe) {
+    public Modalite modaliteAo;
+    private String lieu;
+    @JsonBackReference
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Esn esn;
 
+    public AppelOffre() {
     }
 
-    @Override
-    public void supprimerObservateur(Observateur observateur) {
-
+    public AppelOffre(Long id, String titreAo, Date dateDebutAo, Date dateFinAo, String descriptionAo, Float tjmAo, Modalite modaliteAo, String lieu) {
+        this.id = id;
+        this.titreAo = titreAo;
+        this.dateDebutAo = dateDebutAo;
+        this.dateFinAo = dateFinAo;
+        this.descriptionAo = descriptionAo;
+        this.tjmAo = tjmAo;
+        this.modaliteAo = modaliteAo;
+        this.lieu = lieu;
     }
 
-    @Override
-    public void notifyObservateur() {
+    public Long getId() {
+        return id;
+    }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getTitreAo() {
+        return titreAo;
+    }
+
+    public void setTitreAo(String titreAo) {
+        this.titreAo = titreAo;
+    }
+
+    public Date getDateDebutAo() {
+        return dateDebutAo;
+    }
+
+    public void setDateDebutAo(Date dateDebutAo) {
+        this.dateDebutAo = dateDebutAo;
+    }
+
+    public Date getDateFinAo() {
+        return dateFinAo;
+    }
+
+    public void setDateFinAo(Date dateFinAo) {
+        this.dateFinAo = dateFinAo;
+    }
+
+    public String getDescriptionAo() {
+        return descriptionAo;
+    }
+
+    public void setDescriptionAo(String descriptionAo) {
+        this.descriptionAo = descriptionAo;
+    }
+
+    public Float getTjmAo() {
+        return tjmAo;
+    }
+
+    public void setTjmAo(Float tjmAo) {
+        this.tjmAo = tjmAo;
+    }
+
+    public Modalite getModaliteAo() {
+        return modaliteAo;
+    }
+
+    public void setModaliteAo(Modalite modaliteAo) {
+        this.modaliteAo = modaliteAo;
+    }
+
+    public String getLieu() {
+        return lieu;
+    }
+
+    public void setLieu(String lieu) {
+        this.lieu = lieu;
+    }
+
+    public Esn getEsn() {
+        return esn;
+    }
+
+    public void setEsn(Esn esn) {
+        this.esn = esn;
     }
 }
