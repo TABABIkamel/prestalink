@@ -3,23 +3,23 @@ package com.aoservice.controllers;
 import java.util.List;
 
 import com.aoservice.entities.*;
-import com.aoservice.repositories.AppellOffreRepository;
 import com.aoservice.repositories.EducationRepository;
 import com.aoservice.repositories.ExperienceRepository;
 import com.aoservice.repositories.PrestataireRepository;
-import com.aoservice.service.ArticleWorkflowService;
-import org.keycloak.KeycloakPrincipal;
-import org.keycloak.KeycloakSecurityContext;
-import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
+import com.aoservice.service.AoWorkflowService;
+import org.flowable.engine.history.HistoricDetail;
+import org.flowable.task.api.Task;
+import org.flowable.task.api.history.HistoricTaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+
 @RequestMapping(value = "/api/ao")
 @RestController
 public class AoWorkflowController {
     @Autowired
-    ArticleWorkflowService service;
+    AoWorkflowService aoWorkflowService;
     @Autowired
     PrestataireRepository prestataireRepository;
     @Autowired
@@ -52,18 +52,24 @@ public class AoWorkflowController {
 //        KeycloakPrincipal principal = (KeycloakPrincipal) token.getPrincipal();
 //        KeycloakSecurityContext keycloakSecurityContext=principal.getKeycloakSecurityContext();
 //        keycloakSecurityContext.getToken().getId();
-          service.startProcess(candidature);
+        aoWorkflowService.startProcess(candidature);
     }
-    @GetMapping("/tasks")
-    public List<Candidature> getTasks(@RequestParam String assignee) {
-        return service.getTasks(assignee);
+    @GetMapping("/tasks/{assignee}")
+    public List<Candidature> getTasks(@PathVariable("assignee") String assignee) {
+        return aoWorkflowService.getTasks(assignee);
     }
-    @GetMapping("/statusTasks")
-    public List<Object> getStatusTasks(@RequestParam String assignee) {
-        return service.getStatusOfTasks(assignee);
+    @GetMapping("/finishedTasks/{assignee}")
+    public List<Candidature> getFinishedTask(@PathVariable("assignee") String assignee) {
+        return aoWorkflowService.getFinishedTask(assignee);
+    }
+    @GetMapping("/getTaskById/{idTask}")
+    public List<Task> getTaskById(@PathVariable("idTask") String idTask) {
+        return aoWorkflowService.getTaskById(idTask);
     }
     @PostMapping("/review")
     public void review(@RequestBody Approval approval) {
-        service.submitReview(approval);
+        aoWorkflowService.submitReview(approval);
     }
+
+
 }

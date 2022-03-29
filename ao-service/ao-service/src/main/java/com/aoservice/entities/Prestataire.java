@@ -24,6 +24,7 @@ public class Prestataire {
     private String prestataireRib;
     private String prestataireIban;
     private String prestataireLieu;
+    private String locationImage;
     private String prestataireEmail;
     private boolean prestataireIsCompleted;
     @LazyCollection(LazyCollectionOption.FALSE)
@@ -120,6 +121,14 @@ public class Prestataire {
 
     public void setPrestataireEmail(String prestataireEmail) {
         this.prestataireEmail = prestataireEmail;
+    }
+
+    public String getLocationImage() {
+        return locationImage;
+    }
+
+    public void setLocationImage(String locationImage) {
+        this.locationImage = locationImage;
     }
 
     public boolean isPrestataireIsCompleted() {

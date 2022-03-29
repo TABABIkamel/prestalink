@@ -19,6 +19,7 @@ public class Esn  {
     private String esnEmail;
     private String esnUsernameRepresentant;
     private boolean esnIsCompleted;
+    private String locationImage;
     private boolean esnIsPrestataire;
     @OneToMany(cascade = CascadeType.ALL,mappedBy="esn")
     private Set<AppelOffre> appelOffres;
@@ -108,6 +109,14 @@ public class Esn  {
 
     public void setEsnIsPrestataire(boolean esnIsPrestataire) {
         this.esnIsPrestataire = esnIsPrestataire;
+    }
+
+    public String getLocationImage() {
+        return locationImage;
+    }
+
+    public void setLocationImage(String locationImage) {
+        this.locationImage = locationImage;
     }
 
     public Set<AppelOffre> getAppelOffres() {

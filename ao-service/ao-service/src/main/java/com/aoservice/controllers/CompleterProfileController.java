@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "*")
 @RestControllerAdvice
 @RequestMapping(value = "/api/ao")
 public class CompleterProfileController {

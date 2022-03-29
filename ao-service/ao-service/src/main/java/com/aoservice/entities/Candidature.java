@@ -1,25 +1,50 @@
 package com.aoservice.entities;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import java.util.List;
-
 public class Candidature {
     private String id;
     private Long idPost;
+    private String titreAo;
     private String username;
     private String name;
+    private String lieu;
     private List<Education> educations;
     private List<Experience> experiences;
+    private String email;
+    private String status;
 
     public Candidature() {
     }
 
-    public Candidature(String id, Long idPost, String username, String name, List<Education> educations, List<Experience> experiences) {
+    public Candidature(String id, Long idPost, String name, List<Education> educations, List<Experience> experiences) {
         this.id = id;
         this.idPost = idPost;
-        this.username = username;
         this.name = name;
         this.educations = educations;
         this.experiences = experiences;
+    }
+
+    public Candidature(String id, Long idPost, String username, String email, String lieu) {
+        this.id = id;
+        this.idPost = idPost;
+        this.username = username;
+        this.email = email;
+        this.lieu = lieu;
+    }
+
+    public Candidature(String id, Long idPost,String titreAo, String name, String lieu, List<Education> educations, List<Experience> experiences, String email) {
+        this.id = id;
+        this.idPost = idPost;
+        this.titreAo=titreAo;
+        this.name = name;
+        this.lieu = lieu;
+        this.educations = educations;
+        this.experiences = experiences;
+        this.email = email;
     }
 
     public String getId() {
@@ -68,5 +93,37 @@ public class Candidature {
 
     public void setExperiences(List<Experience> experiences) {
         this.experiences = experiences;
+    }
+
+    public String getLieu() {
+        return lieu;
+    }
+
+    public void setLieu(String lieu) {
+        this.lieu = lieu;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getTitreAo() {
+        return titreAo;
+    }
+
+    public void setTitreAo(String titreAo) {
+        this.titreAo = titreAo;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
