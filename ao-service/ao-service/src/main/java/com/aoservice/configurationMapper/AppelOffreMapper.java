@@ -14,6 +14,7 @@ public interface AppelOffreMapper {
                 @Mapping(target="dateFinAoDto", source="appelOffre.dateFinAo"),
                 @Mapping(target="descriptionAoDto", source="appelOffre.descriptionAo"),
                 @Mapping(target="tjmAoDto", source="appelOffre.tjmAo"),
+                @Mapping(target="lieuAoDto", source="appelOffre.lieu"),
                 @Mapping(target="modaliteAoDto", source="appelOffre.modaliteAo")
         })
         AppelOffreDto appelOffreToAppelOffreDTO(AppelOffre appelOffre);
@@ -24,6 +25,7 @@ public interface AppelOffreMapper {
                 @Mapping(target="dateFinAo", source="appelOffreDto.dateFinAoDto"),
                 @Mapping(target="descriptionAo", source="appelOffreDto.descriptionAoDto"),
                 @Mapping(target="tjmAo", source="appelOffreDto.tjmAoDto"),
+                @Mapping(target="lieu", source="appelOffreDto.lieuAoDto"),
                 @Mapping(target="modaliteAo", source="appelOffreDto.modaliteAoDto")
         })
         AppelOffre appelOffreDTOtoAppelOffre(AppelOffreDto appelOffreDto);

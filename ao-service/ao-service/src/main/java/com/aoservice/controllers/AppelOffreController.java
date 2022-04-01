@@ -34,6 +34,8 @@ public class AppelOffreController {
     @Autowired
     private AppellOffreRepository appellOffreRepository;
     @Autowired
+    private EsnRepository esnRepository;
+    @Autowired
     private KeycloakRestTemplate keycloakRestTemplate;
     private AppelOffreMapper mapper = Mappers.getMapper(AppelOffreMapper.class);
 
@@ -44,7 +46,13 @@ public class AppelOffreController {
         if(allAo.isEmpty()){
             throw new AppelOffreNotFoundException(ErrorMessages.NO_APPELOFFRE_FOUND.getErrorMessage());
         }
-        List<AppelOffreDto> appelOffresDto = allAppelOffre.stream().map(ao -> mapper.appelOffreToAppelOffreDTO(ao)).collect(Collectors.toList());
+        List<AppelOffreDto> appelOffresDto = allAppelOffre.stream()
+                .map(ao ->{ AppelOffreDto appelOffreDto= mapper.appelOffreToAppelOffreDTO(ao);
+                            appelOffreDto.setEsnImage(ao.getEsn().getLocationImage());
+                            appelOffreDto.setEsnNom(ao.getEsn().getEsnnom());
+                            return appelOffreDto;
+                })
+                .collect(Collectors.toList());
         return new ResponseEntity<>(appelOffresDto, HttpStatus.OK);
     }
     @GetMapping(value = "/getProfileAo")
@@ -54,11 +62,20 @@ public class AppelOffreController {
     }
     @ResponseBody
     @PostMapping(value = "/createAo")
-    public ResponseEntity<AppelOffreDto> createAo(@RequestBody AppelOffreDto appelOffreDto) {
+    public ResponseEntity<AppelOffreDto> createAo(@RequestBody AppelOffreDto appelOffreDto, HttpServletRequest request) {
+        KeycloakAuthenticationToken token=(KeycloakAuthenticationToken) request.getUserPrincipal();
+        KeycloakPrincipal principal = (KeycloakPrincipal) token.getPrincipal();
+        KeycloakSecurityContext keycloakSecurityContext=principal.getKeycloakSecurityContext();
+        Esn esn =esnRepository.findByEsnUsernameRepresentant(keycloakSecurityContext.getToken().getPreferredUsername());
         Optional<AppelOffre> appelOffre = Optional.of(mapper.appelOffreDTOtoAppelOffre(appelOffreDto));
-        AppelOffre appelOffreSaved = appellOffreRepository.save(appelOffre.get());
-        return new ResponseEntity<AppelOffreDto>(mapper.appelOffreToAppelOffreDTO(appelOffreSaved),HttpStatus.CREATED);
-    }
+        if(appelOffre.isPresent()) {
+            appelOffre.get().setEsn(esn);
+            AppelOffre appelOffreSaved = appellOffreRepository.save(appelOffre.get());
+            return new ResponseEntity<AppelOffreDto>(mapper.appelOffreToAppelOffreDTO(appelOffreSaved), HttpStatus.CREATED);
+        }
+        else
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
 }
 @Data
 class ProfileLikedin {

@@ -17,6 +17,7 @@ import org.flowable.engine.HistoryService;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
 import org.flowable.engine.history.HistoricDetail;
+import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
 import org.flowable.task.api.history.HistoricTaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +63,7 @@ public class AoWorkflowService {
             variables.put("experience", candidature.getExperiences());
             variables.put("education", candidature.getEducations());
             variables.put("email", candidature.getEmail());
-            runtimeService.startProcessInstanceByKey("candidatureReview", variables);
+            ProcessInstance candidatureReview = runtimeService.startProcessInstanceByKey("candidatureReview", variables);
         }else {
             Esn esn =esnRepository.findByEsnUsernameRepresentant(candidature.getUsername());
             candidature.setEmail(esn.getEsnEmail());
@@ -73,6 +74,17 @@ public class AoWorkflowService {
             variables.put("email", candidature.getEmail());
             runtimeService.startProcessInstanceByKey("candidatureReview", variables);
         }
+        List<Task> tasks = taskService.createTaskQuery().taskAssignee(appelOffre.getEsn().getEsnUsernameRepresentant())
+                .list();
+        tasks.stream()
+                .map(task -> {
+                    Map<String, Object> newVariables = taskService.getVariables(task.getId());
+                    if(candidatureFinishedRepository.findByIdTask(task.getId())==null){
+                        candidatureFinishedRepository.save(new CandidatureFinished(task.getId(),(String) newVariables.get("titrAo"),(String) newVariables.get("username")));
+                    }
+                    return null;
+                })
+                .collect(Collectors.toList());
 
     }
     @Transactional
@@ -92,9 +104,9 @@ public class AoWorkflowService {
                     Candidature candidature=new Candidature(
                             task.getId(),(Long) variables.get("idAo"),(String) variables.get("titrAo"),(String) variables.get("Nom Candidat"), (String) variables.get("lieu"),(List<Education>) variables.get("education"),(List<Experience>)variables.get("experience")
                             ,(String) variables.get("email"));
-                    if(candidatureFinishedRepository.findByIdTask(task.getId())==null){
-                        candidatureFinishedRepository.save(new CandidatureFinished(task.getId(),(String) variables.get("titrAo"),(String) variables.get("username")));
-                    }
+//                    if(candidatureFinishedRepository.findByIdTask(task.getId())==null){
+//                        candidatureFinishedRepository.save(new CandidatureFinished(task.getId(),(String) variables.get("titrAo"),(String) variables.get("username")));
+//                    }
                     return candidature;
                 })
                 .collect(Collectors.toList());
@@ -122,8 +134,11 @@ public class AoWorkflowService {
         listIds.stream().map(idTask->
         {
             CandidatureFinished candidatureFinished=candidatureFinishedRepository.findByIdTask(idTask);
-            if (candidatureFinished!=null){
-                Prestataire prestataire=prestataireRepository.findByPrestataireUsername(candidatureFinished.getUsername());
+
+            if(candidatureFinished!=null){
+            Prestataire prestataire=prestataireRepository.findByPrestataireUsername(candidatureFinished.getUsername());
+            if (prestataire!=null){
+
                 Candidature candidature=new Candidature();
                 candidature.setId(idTask);
                 candidature.setTitreAo(candidatureFinished.getTitreAo());
@@ -133,10 +148,18 @@ public class AoWorkflowService {
                 candidature.setEducations(prestataire.getPrestataireEducation());
                 candidature.setExperiences(prestataire.getPrestataireExperience());
                 candidature.setStatus(candidatureFinished.getStatus());
-                System.out.println(candidature);
                 candidatures.add(candidature);
-            }
-
+            }else{
+                Esn esn=esnRepository.findByEsnUsernameRepresentant(candidatureFinished.getUsername());
+                Candidature candidature=new Candidature();
+                candidature.setId(idTask);
+                candidature.setTitreAo(candidatureFinished.getTitreAo());
+                candidature.setName(esn.getEsnnom());
+                candidature.setEmail(esn.getEsnEmail());
+                candidature.setLieu(esn.getEsnLieu());
+                candidature.setStatus(candidatureFinished.getStatus());
+                candidatures.add(candidature);
+            }}
             return candidatures;
         }).collect(Collectors.toList());
         return candidatures;

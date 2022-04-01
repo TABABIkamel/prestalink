@@ -1,0 +1,22 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Template</title>
+</head>
+<body>
+<p th:text="${'Bonjour, ' + nameCandidat}"></p>
+ <p th:text="${'A la suite d une etude approfondie de votre dossier , nous avons le plaisir de vous informer que votre candidature a ete pre-selectionne pour l appel offre '+ titreAo+'.'}"></p>
+
+<p>Afin d'avancer dans le process de recrutement, nous souhaiterions avoir un entretien complémentaire avec vous et vous faire passer une série de tests</p>
+
+<p>Nous vous remercions de bien vouloir prendre contact avec notre service recrutement le plus rapidement possible afin que nous puissions nous rencontrer.</p>
+
+<p>Nous nous tenons à votre disposition pour tous renseignements complémentaires qu’il vous plairait de nous demander.</p>
+
+<p th:text="${'Veuillez agreer, ' + nameCandidat+', nos salutations distinguees.'}"></p>
+
+</body>
+</html>

@@ -1,7 +1,9 @@
 package com.aoservice.dto;
+import org.springframework.web.multipart.MultipartFile;
 
-public class EsnDto {
 
+
+public class EsnDto  {
     private Long id;
     private String nonEsn;
     private String rib;
@@ -9,11 +11,13 @@ public class EsnDto {
     private String lieu;
     private String email;
     private String usernameRepresentant;
+    private String imageLocation;
     private boolean isCompleted;
     private boolean isPrestataire;
 
     public EsnDto() {
     }
+
 
     public EsnDto(Long id, String nonEsn, String rib, String iban, String lieu, String email, String usernameRepresentant, boolean isCompleted, boolean isPrestataire) {
         this.id = id;
@@ -98,4 +102,13 @@ public class EsnDto {
     public void setPrestataire(boolean prestataire) {
         isPrestataire = prestataire;
     }
+
+    public String getImageLocation() {
+        return imageLocation;
+    }
+
+    public void setImageLocation(String imageLocation) {
+        this.imageLocation = imageLocation;
+    }
+
 }

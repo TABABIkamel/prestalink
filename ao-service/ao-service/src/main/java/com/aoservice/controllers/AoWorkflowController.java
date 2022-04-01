@@ -1,8 +1,13 @@
 package com.aoservice.controllers;
 
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.aoservice.dto.Details;
 import com.aoservice.entities.*;
+import com.aoservice.repositories.CandidatureFinishedRepository;
 import com.aoservice.repositories.EducationRepository;
 import com.aoservice.repositories.ExperienceRepository;
 import com.aoservice.repositories.PrestataireRepository;
@@ -11,8 +16,15 @@ import org.flowable.engine.history.HistoricDetail;
 import org.flowable.task.api.Task;
 import org.flowable.task.api.history.HistoricTaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.web.bind.annotation.*;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring4.SpringTemplateEngine;
 
+import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 
 @RequestMapping(value = "/api/ao")
@@ -26,8 +38,11 @@ public class AoWorkflowController {
     EducationRepository educationRepository;
     @Autowired
     ExperienceRepository experienceRepository;
+    @Autowired
+    CandidatureFinishedRepository candidatureFinishedRepository;
 
-//    @Autowired
+
+    //    @Autowired
 //    AppellOffreRepository appellOffreRepository;
 //    @GetMapping("/getAoById/{idAo}")
 //    public AppelOffre getEsnByIdAo(@PathVariable("idAo")Long idAo){
@@ -70,6 +85,15 @@ public class AoWorkflowController {
     public void review(@RequestBody Approval approval) {
         aoWorkflowService.submitReview(approval);
     }
+    @GetMapping("/getCandidatureByUsernameCandidate/{username}")
+    public ResponseEntity<List<CandidatureFinished>> getCandidatureByUsernameCandidate(@PathVariable("username") String username) {
+        List<CandidatureFinished> candidatureFinishedList=candidatureFinishedRepository.findByUsername(username);
+        if (candidatureFinishedList.isEmpty()){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(candidatureFinishedList,HttpStatus.OK);
+    }
+
 
 
 }

@@ -12,6 +12,7 @@ public class PrestataireDto {
     private String lieu;
     private String email;
     private boolean isCompleted;
+    private String imageLocation;
     private List<EducationDto> education;
     private List<ExperienceDto> experience;
 
@@ -109,6 +110,14 @@ public class PrestataireDto {
 
     public void setCompleted(boolean completed) {
         isCompleted = completed;
+    }
+
+    public String getImageLocation() {
+        return imageLocation;
+    }
+
+    public void setImageLocation(String imageLocation) {
+        this.imageLocation = imageLocation;
     }
 
     public List<EducationDto> getEducation() {

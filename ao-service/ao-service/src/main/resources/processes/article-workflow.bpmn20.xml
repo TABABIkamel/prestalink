@@ -38,12 +38,12 @@
 		</sequenceFlow>
 		<serviceTask id="candidatureApproved"
 			name="Contact the owner of approved candidature."
-			flowable:class="com.aoservice.service.SendAcceptedMailService" />
+		    flowable:delegateExpression="${sendAcceptedMailService}" />
 		<sequenceFlow sourceRef="candidatureApproved"
 			targetRef="end" />
 		<serviceTask id="candidatureRejected"
 			name="Send out rejection email to owner of rejected candidature"
-			flowable:class="com.aoservice.service.SendRejectedMailService" />
+					 flowable:delegateExpression="${sendRejectedMailService}" />
 		<sequenceFlow sourceRef="candidatureRejected"
 			targetRef="end" />
 		<endEvent id="end" />
