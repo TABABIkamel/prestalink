@@ -6,6 +6,7 @@ import lombok.*;
 
 import javax.persistence.Id;
 import java.util.Date;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -22,6 +23,9 @@ public class AppelOffreDto {
     public Modalite modaliteAoDto;
     public String esnImage;
     public String esnNom;
+    public String esnUsernameRepresentant;
+    public Set<String> usernamePrestataires;
+    public Set<String> usernameEsns;
 
     public AppelOffreDto() {
     }
@@ -115,5 +119,29 @@ public class AppelOffreDto {
 
     public void setEsnNom(String esnNom) {
         this.esnNom = esnNom;
+    }
+
+    public Set<String> getUsernamePrestataires() {
+        return usernamePrestataires;
+    }
+
+    public void setUsernamePrestataires(Set<String> usernamePrestataires) {
+        this.usernamePrestataires = usernamePrestataires;
+    }
+
+    public Set<String> getUsernameEsns() {
+        return usernameEsns;
+    }
+
+    public void setUsernameEsns(Set<String> usernameEsns) {
+        this.usernameEsns = usernameEsns;
+    }
+
+    public String getEsnUsernameRepresentant() {
+        return esnUsernameRepresentant;
+    }
+
+    public void setEsnUsernameRepresentant(String esnUsernameRepresentant) {
+        this.esnUsernameRepresentant = esnUsernameRepresentant;
     }
 }

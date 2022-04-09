@@ -6,6 +6,7 @@ import lombok.*;
 import javax.persistence.*;
 
 import java.util.Date;
+import java.util.Set;
 
 
 @Entity
@@ -25,6 +26,12 @@ public class AppelOffre {
     @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     private Esn esn;
+
+    @ManyToMany(cascade = CascadeType.ALL)
+    private Set<Prestataire> prestataires;
+
+    @ManyToMany(cascade = CascadeType.ALL)
+    private Set<Esn> esns;
 
     public AppelOffre() {
     }
@@ -110,5 +117,21 @@ public class AppelOffre {
 
     public void setEsn(Esn esn) {
         this.esn = esn;
+    }
+
+    public Set<Prestataire> getPrestataires() {
+        return prestataires;
+    }
+
+    public void setPrestataires(Set<Prestataire> prestataires) {
+        this.prestataires = prestataires;
+    }
+
+    public Set<Esn> getEsns() {
+        return esns;
+    }
+
+    public void setEsns(Set<Esn> esns) {
+        this.esns = esns;
     }
 }

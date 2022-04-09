@@ -23,6 +23,8 @@ public class Esn  {
     private boolean esnIsPrestataire;
     @OneToMany(cascade = CascadeType.ALL,mappedBy="esn")
     private Set<AppelOffre> appelOffres;
+    @ManyToMany(cascade = CascadeType.ALL,mappedBy="esns")
+    private Set<AppelOffre> appelOffress;
 
     public Esn() {
     }
@@ -125,5 +127,13 @@ public class Esn  {
 
     public void setAppelOffres(Set<AppelOffre> appelOffres) {
         this.appelOffres = appelOffres;
+    }
+
+    public Set<AppelOffre> getAppelOffress() {
+        return appelOffress;
+    }
+
+    public void setAppelOffress(Set<AppelOffre> appelOffress) {
+        this.appelOffress = appelOffress;
     }
 }

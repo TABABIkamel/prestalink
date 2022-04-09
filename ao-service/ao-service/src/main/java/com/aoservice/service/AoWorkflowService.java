@@ -52,6 +52,10 @@ public class AoWorkflowService {
         variables.put("titrAo", candidature.getTitreAo());
         variables.put("username", candidature.getUsername());
         variables.put("Nom Candidat", candidature.getName());
+        //        if(prestataire!=null){
+//            AppelOffre appelOffre=appellOffreRepository.findById(candidature.getIdPost()).get();
+//            appelOffre.getPrestataires().add(prestataire);
+//        }
         if(prestataire!=null){
             List<Experience> prestataireExperience = prestataire.getPrestataireExperience();
             List<Education> prestataireEducation = prestataire.getPrestataireEducation();
@@ -64,6 +68,8 @@ public class AoWorkflowService {
             variables.put("education", candidature.getEducations());
             variables.put("email", candidature.getEmail());
             ProcessInstance candidatureReview = runtimeService.startProcessInstanceByKey("candidatureReview", variables);
+            appelOffre.getPrestataires().add(prestataire);
+            appellOffreRepository.save(appelOffre);
         }else {
             Esn esn =esnRepository.findByEsnUsernameRepresentant(candidature.getUsername());
             candidature.setEmail(esn.getEsnEmail());
@@ -73,6 +79,8 @@ public class AoWorkflowService {
             variables.put("lieu", candidature.getLieu());
             variables.put("email", candidature.getEmail());
             runtimeService.startProcessInstanceByKey("candidatureReview", variables);
+            appelOffre.getEsns().add(esn);
+            appellOffreRepository.save(appelOffre);
         }
         List<Task> tasks = taskService.createTaskQuery().taskAssignee(appelOffre.getEsn().getEsnUsernameRepresentant())
                 .list();

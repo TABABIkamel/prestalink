@@ -120,6 +120,38 @@ public class CompleterProfileController {
             esnRepository.save(esn);
         }
     }
+    @PostMapping(value = "setPhotoToPrestataire/{username}")
+    public void setPhotoToPrestataire(MultipartFile file,@PathVariable("username") String username) throws IOException {
+        Prestataire prestataire=prestataireRepository.findByPrestataireUsername(username);
+        String fileName = file.getOriginalFilename();
+        String prefix = fileName.substring(fileName.lastIndexOf("."));
+
+        File file1 = null;
+        try {
+
+            file1 = File.createTempFile(fileName, prefix);
+            file.transferTo(file1);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        } finally {
+            // After operating the above files, you need to delete the temporary files generated in the root directory
+            File f = new File(file1.toURI());
+            // f.delete();
+        }
+        Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
+                "cloud_name", "dhum7apjy",
+                "api_key", "265837847724928",
+                "api_secret", "CVKzJr7cldr0au9oFSh6t3mGqzw"));
+        //File file = new File("img1.png");
+        Map uploadResult = cloudinary.uploader().upload(file1, ObjectUtils.emptyMap());
+        System.out.println(uploadResult.get("url"));
+        if(prestataire!=null){
+            System.out.println("in if");
+            prestataire.setLocationImage((String)uploadResult.get("url"));
+            prestataireRepository.save(prestataire);
+        }
+    }
     @GetMapping(value = "/checkIfProfileEsnCompleted/{username}")
     public ResponseEntity<EsnDto> checkIfProfileEsnCompleted(@PathVariable("username") String usename){
         Esn esn =esnRepository.findByEsnUsernameRepresentant(usename);

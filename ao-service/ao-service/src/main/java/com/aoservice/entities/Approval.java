@@ -21,4 +21,13 @@ public class Approval {
         this.status = status;
     }
 
+	public Approval(boolean status) {
+		super();
+		this.status = status;
+	}
+
+    public Approval(String id, boolean status) {
+        this.id = id;
+        this.status = status;
+    }
 }

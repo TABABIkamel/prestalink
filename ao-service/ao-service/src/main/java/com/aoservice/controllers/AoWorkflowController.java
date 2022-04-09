@@ -7,10 +7,7 @@ import java.util.Map;
 
 import com.aoservice.dto.Details;
 import com.aoservice.entities.*;
-import com.aoservice.repositories.CandidatureFinishedRepository;
-import com.aoservice.repositories.EducationRepository;
-import com.aoservice.repositories.ExperienceRepository;
-import com.aoservice.repositories.PrestataireRepository;
+import com.aoservice.repositories.*;
 import com.aoservice.service.AoWorkflowService;
 import org.flowable.engine.history.HistoricDetail;
 import org.flowable.task.api.Task;
@@ -26,6 +23,7 @@ import org.thymeleaf.spring4.SpringTemplateEngine;
 
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
 
 @RequestMapping(value = "/api/ao")
 @RestController
@@ -40,7 +38,8 @@ public class AoWorkflowController {
     ExperienceRepository experienceRepository;
     @Autowired
     CandidatureFinishedRepository candidatureFinishedRepository;
-
+    @Autowired
+    private AppellOffreRepository appellOffreRepository;
 
     //    @Autowired
 //    AppellOffreRepository appellOffreRepository;
@@ -62,11 +61,14 @@ public class AoWorkflowController {
         return experienceRepository.getExperiencePrestataire(username);
     }
     @PostMapping("/submit")
+    @ResponseBody
     public void submit(@RequestBody Candidature candidature, HttpServletRequest request) {
 //        KeycloakAuthenticationToken token=(KeycloakAuthenticationToken) request.getUserPrincipal();
 //        KeycloakPrincipal principal = (KeycloakPrincipal) token.getPrincipal();
 //        KeycloakSecurityContext keycloakSecurityContext=principal.getKeycloakSecurityContext();
 //        keycloakSecurityContext.getToken().getId();
+//        Prestataire prestataire=prestataireRepository.findByPrestataireUsername(candidature.getUsername());
+
         aoWorkflowService.startProcess(candidature);
     }
     @GetMapping("/tasks/{assignee}")

@@ -10,6 +10,7 @@ import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.util.List;
+import java.util.Set;
 
 
 @Entity(name = "prestataire")
@@ -33,7 +34,8 @@ public class Prestataire {
     @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany(cascade = CascadeType.ALL,mappedBy="prestataire")
     private List<Experience> prestataireExperience;
-
+    @ManyToMany(mappedBy="prestataires",cascade = CascadeType.ALL)
+    private Set<AppelOffre> appelOffres;
     public Prestataire() {
     }
 
@@ -153,5 +155,13 @@ public class Prestataire {
 
     public void setPrestataireExperience(List<Experience> prestataireExperience) {
         this.prestataireExperience = prestataireExperience;
+    }
+
+    public Set<AppelOffre> getAppelOffres() {
+        return appelOffres;
+    }
+
+    public void setAppelOffres(Set<AppelOffre> appelOffres) {
+        this.appelOffres = appelOffres;
     }
 }
