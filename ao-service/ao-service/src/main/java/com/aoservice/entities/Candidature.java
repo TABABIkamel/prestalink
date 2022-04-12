@@ -9,6 +9,7 @@ public class Candidature {
     private String id;
     private Long idPost;
     private String titreAo;
+    private String refAo;
     private String username;
     private String name;
     private String lieu;
@@ -16,11 +17,16 @@ public class Candidature {
     private List<Experience> experiences;
     private String email;
     private String status;
+    private Boolean hasContract;
 
     public Candidature() {
     }
 
-    public Candidature(String id, Long idPost, String name, List<Education> educations, List<Experience> experiences) {
+    public Candidature(String id,
+                       Long idPost,
+                       String name,
+                       List<Education> educations,
+                       List<Experience> experiences) {
         this.id = id;
         this.idPost = idPost;
         this.name = name;
@@ -36,10 +42,19 @@ public class Candidature {
         this.lieu = lieu;
     }
 
-    public Candidature(String id, Long idPost,String titreAo, String name, String lieu, List<Education> educations, List<Experience> experiences, String email) {
+    public Candidature(String id,
+                       Long idPost,
+                       String titreAo,
+                       String refAo,
+                       String name,
+                       String lieu,
+                       List<Education> educations,
+                       List<Experience> experiences,
+                       String email) {
         this.id = id;
         this.idPost = idPost;
         this.titreAo=titreAo;
+        this.refAo=refAo;
         this.name = name;
         this.lieu = lieu;
         this.educations = educations;
@@ -53,6 +68,14 @@ public class Candidature {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public Boolean getHasContract() {
+        return hasContract;
+    }
+
+    public void setHasContract(Boolean hasContract) {
+        this.hasContract = hasContract;
     }
 
     public Long getIdPost() {
@@ -117,6 +140,14 @@ public class Candidature {
 
     public void setTitreAo(String titreAo) {
         this.titreAo = titreAo;
+    }
+
+    public String getRefAo() {
+        return refAo;
+    }
+
+    public void setRefAo(String refAo) {
+        this.refAo = refAo;
     }
 
     public String getStatus() {

@@ -3,8 +3,6 @@ package com.aoservice.dto;
 
 import com.aoservice.entities.Modalite;
 import lombok.*;
-
-import javax.persistence.Id;
 import java.util.Date;
 import java.util.Set;
 
@@ -14,6 +12,7 @@ import java.util.Set;
 @Builder
 public class AppelOffreDto {
     public Long idDto;
+    public String refAoDto;
     public String titreAoDto;
     public Date dateDebutAoDto;
     public Date dateFinAoDto;
@@ -30,8 +29,17 @@ public class AppelOffreDto {
     public AppelOffreDto() {
     }
 
-    public AppelOffreDto(Long idDto, String titreAoDto, Date dateDebutAoDto, Date dateFinAoDto, String descriptionAoDto, Float tjmAoDto, Modalite modaliteAoDto, String esnImage) {
+    public AppelOffreDto(Long idDto,
+                         String refAoDto,
+                         String titreAoDto,
+                         Date dateDebutAoDto,
+                         Date dateFinAoDto,
+                         String descriptionAoDto,
+                         Float tjmAoDto,
+                         Modalite modaliteAoDto,
+                         String esnImage) {
         this.idDto = idDto;
+        this.refAoDto = refAoDto;
         this.titreAoDto = titreAoDto;
         this.dateDebutAoDto = dateDebutAoDto;
         this.dateFinAoDto = dateFinAoDto;
@@ -47,6 +55,14 @@ public class AppelOffreDto {
 
     public void setIdDto(Long idDto) {
         this.idDto = idDto;
+    }
+
+    public String getRefAoDto() {
+        return refAoDto;
+    }
+
+    public void setRefAoDto(String refAoDto) {
+        this.refAoDto = refAoDto;
     }
 
     public String getTitreAoDto() {

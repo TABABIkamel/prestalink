@@ -12,8 +12,10 @@ public class CandidatureFinished {
     private Long id;
     private String idTask;
     private String titreAo;
+    private String refAo;
     private String username;
     private String status;
+    private Boolean hasContract;
 
     public CandidatureFinished() {
     }
@@ -31,6 +33,12 @@ public class CandidatureFinished {
         this.username = username;
     }
 
+    public CandidatureFinished(String idTask, String titreAo, String refAo, String username) {
+        this.idTask = idTask;
+        this.titreAo = titreAo;
+        this.refAo = refAo;
+        this.username = username;
+    }
 
     public Long getId() {
         return id;
@@ -64,11 +72,27 @@ public class CandidatureFinished {
         this.idTask = idTask;
     }
 
+    public String getRefAo() {
+        return refAo;
+    }
+
+    public void setRefAo(String refAo) {
+        this.refAo = refAo;
+    }
+
     public String getStatus() {
         return status;
     }
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Boolean getHasContract() {
+        return hasContract;
+    }
+
+    public void setHasContract(Boolean hasContract) {
+        this.hasContract = hasContract;
     }
 }

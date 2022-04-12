@@ -14,4 +14,5 @@ import java.util.List;
     public interface AppellOffreRepository extends JpaRepository<AppelOffre,Long> {
     @Query("SELECT ao FROM AppelOffre ao where ao.id=:idPost ")
     AppelOffre getAoById(@Param("idPost") Long idPost);
+    AppelOffre findByRefAo(String refAo);
 }

@@ -1,7 +1,8 @@
 package com.aoservice.controllers;
 
-import com.aoservice.entities.Esn;
-import com.aoservice.entities.Prestataire;
+import com.aoservice.dto.ContratDto;
+import com.aoservice.entities.*;
+import com.aoservice.repositories.CandidatureFinishedRepository;
 import com.aoservice.repositories.EsnRepository;
 import com.aoservice.repositories.PrestataireRepository;
 import org.keycloak.KeycloakPrincipal;
@@ -12,9 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import com.aoservice.configurationMapper.AppelOffreMapper;
 import com.aoservice.dto.AppelOffreDto;
-import com.aoservice.entities.AppelOffre;
-import com.aoservice.entities.Approval;
-import com.aoservice.entities.Contrat;
 import com.aoservice.exceptions.coreExceptionClasses.ErrorMessages;
 import com.aoservice.exceptions.exceptionClasses.AppelOffreNotFoundException;
 import com.aoservice.repositories.AppellOffreRepository;
@@ -36,9 +34,11 @@ import org.springframework.http.ResponseEntity;
 
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -51,12 +51,14 @@ public class AppelOffreController {
     @Autowired
     private EsnRepository esnRepository;
     @Autowired
+    private CandidatureFinishedRepository candidatureFinishedRepository;
+    @Autowired
     private KeycloakRestTemplate keycloakRestTemplate;
     private AppelOffreMapper mapper = Mappers.getMapper(AppelOffreMapper.class);
 
     @PostMapping(value = "/generateContrat")
     @ResponseBody
-    public ResponseEntity<byte[]> generateContrat(@RequestBody Contrat contrat) throws FileNotFoundException, JRException {
+    public void generateContrat(@RequestBody ContratDto contrat, HttpServletResponse response) throws IOException, JRException {
 
         JRBeanCollectionDataSource jrBeanCollectionDataSource = new JRBeanCollectionDataSource(Arrays.asList(new Approval(false)));
         JasperReport compile = JasperCompileManager.compileReport(new FileInputStream("src/main/resources/jaspertest.jrxml"));
@@ -76,15 +78,52 @@ public class AppelOffreController {
         map.put("prixTotaleMission", contrat.getPrixTotaleMission());
         map.put("preambule", contrat.getPreambule());
         map.put("penalisationParJour", contrat.getPenalisationParJour());
-        map.put("dateGenerationContrat", contrat.getDateGenerationContrat());
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+        LocalDateTime now = LocalDateTime.now();
+        System.out.println(dtf.format(now));
+        map.put("dateGenerationContrat", dtf.format(now));
+        Optional<AppelOffre> appelOffre= Optional.ofNullable(appellOffreRepository.findByRefAo(contrat.getRefAo()));
+        if(appelOffre.isPresent()){
+            map.put("dateDebut", appelOffre.get().getDateDebutAo().toString());
+            map.put("dateFin", appelOffre.get().getDateFinAo().toString());
+            System.out.println(appelOffre.get().getDateFinAo().getTime()-appelOffre.get().getDateDebutAo().getTime());
+            long resultat = appelOffre.get().getDateFinAo().getTime() - appelOffre.get().getDateDebutAo().getTime();
+            String duree = resultat  + " jours";
+            System.out.println();
+            map.put("duree", duree);
+        }
         JasperPrint jasper = JasperFillManager.fillReport(compile, map, jrBeanCollectionDataSource);
         //    	JasperExportManager.exportReportToPdfFile(jasper,"facture.pdf");
-        byte data[] = JasperExportManager.exportReportToPdf(jasper);
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "inline; filename=citiesreport.pdf");
+        //byte data[] = JasperExportManager.exportReportToPdf(jasper);
+        //HttpHeaders headers = new HttpHeaders();
+        //headers.add("Content-Disposition", "inline; filename=citiesreport.pdf");
 
+        //response.setContentType("application/x-download");
+//        response.setContentType("APPLICATION/OCTET-STREAM");
+//        String disHeader = "Attachment;Filename=\"ReportFile.pdf" + "\"";
+//        response.setHeader("Content-Disposition", disHeader);
+//        OutputStream out = response.getOutputStream();
+//        File pdf = File.createTempFile("joelle", ".pdf");
+//        FileOutputStream out = new FileOutputStream(pdf) ;
+//        JasperExportManager.exportReportToPdfStream(jasper,out);
+        //return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(data);
 
-        return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(data);
+        // Make sure the output directory exists.
+        File outDir = new File("C:/prestalink/sony");
+        outDir.mkdirs();
+
+        // Export to PDF.
+        try{
+            JasperExportManager.exportReportToPdfFile(jasper,
+                    "C:/prestalink/sony/contract_"+contrat.getRefAo()+"_"+contrat.getNomPrestataire()+"_"+contrat.getPrenomPrestataire()+".pdf");
+            System.out.println("Done!");
+            CandidatureFinished candidatureFinished=candidatureFinishedRepository.findByIdTask(contrat.getIdCandidature());
+            candidatureFinished.setHasContract(true);
+            candidatureFinishedRepository.save(candidatureFinished);
+        }catch (Exception ex){
+            System.out.println(ex.getCause());
+        }
+
 
     }
 
@@ -135,6 +174,8 @@ public class AppelOffreController {
         if (appelOffre.isPresent()) {
             appelOffre.get().setEsn(esn);
             AppelOffre appelOffreSaved = appellOffreRepository.save(appelOffre.get());
+            appelOffreSaved.setRefAo("AO_"+appelOffreSaved.getId());
+            appellOffreRepository.save(appelOffreSaved);
             return new ResponseEntity<AppelOffreDto>(mapper.appelOffreToAppelOffreDTO(appelOffreSaved), HttpStatus.CREATED);
         } else
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

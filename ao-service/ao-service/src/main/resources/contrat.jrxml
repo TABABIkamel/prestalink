@@ -14,7 +14,6 @@
 	<parameter name="prixTotaleMission" class="java.lang.Float"/>
 	<parameter name="preambule" class="java.lang.String"/>
 	<parameter name="penalisationParJour" class="java.lang.Float"/>
-	<parameter name="dateGenerationContrat" class="java.lang.String"/>
 	<queryString>
 		<![CDATA[]]>
 	</queryString>

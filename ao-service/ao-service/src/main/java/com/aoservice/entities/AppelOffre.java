@@ -13,16 +13,20 @@ import java.util.Set;
 @EqualsAndHashCode
 public class AppelOffre {
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
+    public String refAo;
     public String titreAo;
     public Date dateDebutAo;
     public Date dateFinAo;
     public String descriptionAo;
     public Float tjmAo;
+
     @Enumerated(EnumType.STRING)
     public Modalite modaliteAo;
+
     private String lieu;
+
     @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     private Esn esn;
@@ -33,11 +37,24 @@ public class AppelOffre {
     @ManyToMany(cascade = CascadeType.ALL)
     private Set<Esn> esns;
 
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "appelOffre")
+    private Set<Mission> missions;
+
     public AppelOffre() {
     }
 
-    public AppelOffre(Long id, String titreAo, Date dateDebutAo, Date dateFinAo, String descriptionAo, Float tjmAo, Modalite modaliteAo, String lieu) {
+    public AppelOffre(
+            Long id,
+            String refAo,
+            String titreAo,
+            Date dateDebutAo,
+            Date dateFinAo,
+            String descriptionAo,
+            Float tjmAo,
+            Modalite modaliteAo,
+            String lieu) {
         this.id = id;
+        this.refAo = refAo;
         this.titreAo = titreAo;
         this.dateDebutAo = dateDebutAo;
         this.dateFinAo = dateFinAo;
@@ -53,6 +70,14 @@ public class AppelOffre {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getRefAo() {
+        return refAo;
+    }
+
+    public void setRefAo(String refAo) {
+        this.refAo = refAo;
     }
 
     public String getTitreAo() {

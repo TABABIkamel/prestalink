@@ -9,6 +9,7 @@ import org.mapstruct.Mappings;
 public interface AppelOffreMapper {
         @Mappings({
                 @Mapping(target="idDto", source="appelOffre.id"),
+                @Mapping(target="refAoDto", source="appelOffre.refAo"),
                 @Mapping(target="titreAoDto", source="appelOffre.titreAo"),
                 @Mapping(target="dateDebutAoDto", source="appelOffre.dateDebutAo"),
                 @Mapping(target="dateFinAoDto", source="appelOffre.dateFinAo"),
@@ -20,6 +21,7 @@ public interface AppelOffreMapper {
         AppelOffreDto appelOffreToAppelOffreDTO(AppelOffre appelOffre);
         @Mappings({
                 @Mapping(target="id", source="appelOffreDto.idDto"),
+                @Mapping(target="refAo", source="appelOffreDto.refAoDto"),
                 @Mapping(target="titreAo", source="appelOffreDto.titreAoDto"),
                 @Mapping(target="dateDebutAo", source="appelOffreDto.dateDebutAoDto"),
                 @Mapping(target="dateFinAo", source="appelOffreDto.dateFinAoDto"),

@@ -1,5 +1,6 @@
 package com.aoservice.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,4 +26,7 @@ public class Mission {
     private Modalite modaliteMission;
     @OneToOne
     private Contrat contrat;
+    @JsonBackReference
+    @ManyToOne(fetch = FetchType.LAZY)
+    private AppelOffre appelOffre;
 }

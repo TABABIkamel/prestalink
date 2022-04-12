@@ -11,12 +11,9 @@ import com.aoservice.repositories.AppellOffreRepository;
 import com.aoservice.repositories.CandidatureFinishedRepository;
 import com.aoservice.repositories.EsnRepository;
 import com.aoservice.repositories.PrestataireRepository;
-import liquibase.pro.packaged.S;
-import lombok.Builder;
 import org.flowable.engine.HistoryService;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
-import org.flowable.engine.history.HistoricDetail;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
 import org.flowable.task.api.history.HistoricTaskInstance;
@@ -41,22 +38,25 @@ public class AoWorkflowService {
 
     @Autowired
     CandidatureFinishedRepository candidatureFinishedRepository;
+
     @Transactional
     public void startProcess(Candidature candidature) {
-        AppelOffre appelOffre =appellOffreRepository.getAoById(candidature.getIdPost());
-        Prestataire prestataire=prestataireRepository.findByPrestataireUsername(candidature.getUsername());
+        AppelOffre appelOffre = appellOffreRepository.getAoById(candidature.getIdPost());
+        Prestataire prestataire = prestataireRepository.findByPrestataireUsername(candidature.getUsername());
         candidature.setTitreAo(appelOffre.getTitreAo());
+        candidature.setRefAo(appelOffre.getRefAo());
         Map<String, Object> variables = new HashMap<String, Object>();
         variables.put("esn", appelOffre.getEsn().getEsnUsernameRepresentant());
         variables.put("idAo", candidature.getIdPost());
         variables.put("titrAo", candidature.getTitreAo());
+        variables.put("refAo", candidature.getRefAo());
         variables.put("username", candidature.getUsername());
         variables.put("Nom Candidat", candidature.getName());
         //        if(prestataire!=null){
 //            AppelOffre appelOffre=appellOffreRepository.findById(candidature.getIdPost()).get();
 //            appelOffre.getPrestataires().add(prestataire);
 //        }
-        if(prestataire!=null){
+        if (prestataire != null) {
             List<Experience> prestataireExperience = prestataire.getPrestataireExperience();
             List<Education> prestataireEducation = prestataire.getPrestataireEducation();
             candidature.setExperiences(prestataireExperience);
@@ -70,8 +70,8 @@ public class AoWorkflowService {
             ProcessInstance candidatureReview = runtimeService.startProcessInstanceByKey("candidatureReview", variables);
             appelOffre.getPrestataires().add(prestataire);
             appellOffreRepository.save(appelOffre);
-        }else {
-            Esn esn =esnRepository.findByEsnUsernameRepresentant(candidature.getUsername());
+        } else {
+            Esn esn = esnRepository.findByEsnUsernameRepresentant(candidature.getUsername());
             candidature.setEmail(esn.getEsnEmail());
             candidature.setLieu(esn.getEsnLieu());
             candidature.setName(esn.getEsnnom());
@@ -87,14 +87,15 @@ public class AoWorkflowService {
         tasks.stream()
                 .map(task -> {
                     Map<String, Object> newVariables = taskService.getVariables(task.getId());
-                    if(candidatureFinishedRepository.findByIdTask(task.getId())==null){
-                        candidatureFinishedRepository.save(new CandidatureFinished(task.getId(),(String) newVariables.get("titrAo"),(String) newVariables.get("username")));
+                    if (candidatureFinishedRepository.findByIdTask(task.getId()) == null) {
+                        candidatureFinishedRepository.save(new CandidatureFinished(task.getId(), (String) newVariables.get("titrAo"), (String) newVariables.get("refAo"), (String) newVariables.get("username")));
                     }
                     return null;
                 })
                 .collect(Collectors.toList());
 
     }
+
     @Transactional
     public List<Object> getStatusOfTasks(String assignee) {
         List<Task> tasks = taskService.createTaskQuery()
@@ -102,6 +103,7 @@ public class AoWorkflowService {
                 .list();
         return tasks.stream().map(task -> task.getClaimTime()).collect(Collectors.toList());
     }
+
     @Transactional
     public List<Candidature> getTasks(String assignee) {
         List<Task> tasks = taskService.createTaskQuery().taskAssignee(assignee)
@@ -109,9 +111,9 @@ public class AoWorkflowService {
         return tasks.stream()
                 .map(task -> {
                     Map<String, Object> variables = taskService.getVariables(task.getId());
-                    Candidature candidature=new Candidature(
-                            task.getId(),(Long) variables.get("idAo"),(String) variables.get("titrAo"),(String) variables.get("Nom Candidat"), (String) variables.get("lieu"),(List<Education>) variables.get("education"),(List<Experience>)variables.get("experience")
-                            ,(String) variables.get("email"));
+                    Candidature candidature = new Candidature(
+                            task.getId(), (Long) variables.get("idAo"), (String) variables.get("titrAo"), (String) variables.get("refAo"), (String) variables.get("Nom Candidat"), (String) variables.get("lieu"), (List<Education>) variables.get("education"), (List<Experience>) variables.get("experience")
+                            , (String) variables.get("email"));
 //                    if(candidatureFinishedRepository.findByIdTask(task.getId())==null){
 //                        candidatureFinishedRepository.save(new CandidatureFinished(task.getId(),(String) variables.get("titrAo"),(String) variables.get("username")));
 //                    }
@@ -125,58 +127,63 @@ public class AoWorkflowService {
         Map<String, Object> variables = new HashMap<String, Object>();
         variables.put("approved", approval.isStatus());
         taskService.complete(approval.getId(), variables);
-        CandidatureFinished candidatureFinished=candidatureFinishedRepository.findByIdTask(approval.getId());
-        if (approval.isStatus()){
+        CandidatureFinished candidatureFinished = candidatureFinishedRepository.findByIdTask(approval.getId());
+        if (approval.isStatus()) {
             candidatureFinished.setStatus("ACCEPTED");
-        }else
+        } else
             candidatureFinished.setStatus("REJECTED");
     }
 
-    public List<Candidature> getFinishedTask(String assigne){
-        List<HistoricTaskInstance> tasks=historyService.createHistoricTaskInstanceQuery()
+    public List<Candidature> getFinishedTask(String assigne) {
+        List<HistoricTaskInstance> tasks = historyService.createHistoricTaskInstanceQuery()
                 .finished()
                 // .taskDeleteReasonLike("%invalid%")
                 .taskAssignee(assigne).list();
-        List<String> listIds= tasks.stream().map(task->task.getId()).collect(Collectors.toList());
-        List<Candidature> candidatures=new ArrayList<>();
-        listIds.stream().map(idTask->
+        List<String> listIds = tasks.stream().map(task -> task.getId()).collect(Collectors.toList());
+        List<Candidature> candidatures = new ArrayList<>();
+        listIds.stream().map(idTask ->
         {
-            CandidatureFinished candidatureFinished=candidatureFinishedRepository.findByIdTask(idTask);
+            CandidatureFinished candidatureFinished = candidatureFinishedRepository.findByIdTask(idTask);
 
-            if(candidatureFinished!=null){
-            Prestataire prestataire=prestataireRepository.findByPrestataireUsername(candidatureFinished.getUsername());
-            if (prestataire!=null){
+            if (candidatureFinished != null) {
+                Prestataire prestataire = prestataireRepository.findByPrestataireUsername(candidatureFinished.getUsername());
+                if (prestataire != null) {
 
-                Candidature candidature=new Candidature();
-                candidature.setId(idTask);
-                candidature.setTitreAo(candidatureFinished.getTitreAo());
-                candidature.setName(prestataire.getPrestataireNom());
-                candidature.setEmail(prestataire.getPrestataireEmail());
-                candidature.setLieu(prestataire.getPrestataireLieu());
-                candidature.setEducations(prestataire.getPrestataireEducation());
-                candidature.setExperiences(prestataire.getPrestataireExperience());
-                candidature.setStatus(candidatureFinished.getStatus());
-                candidatures.add(candidature);
-            }else{
-                Esn esn=esnRepository.findByEsnUsernameRepresentant(candidatureFinished.getUsername());
-                Candidature candidature=new Candidature();
-                candidature.setId(idTask);
-                candidature.setTitreAo(candidatureFinished.getTitreAo());
-                candidature.setName(esn.getEsnnom());
-                candidature.setEmail(esn.getEsnEmail());
-                candidature.setLieu(esn.getEsnLieu());
-                candidature.setStatus(candidatureFinished.getStatus());
-                candidatures.add(candidature);
-            }}
+                    Candidature candidature = new Candidature();
+                    candidature.setId(idTask);
+                    candidature.setHasContract(candidatureFinished.getHasContract());
+                    candidature.setTitreAo(candidatureFinished.getTitreAo());
+                    candidature.setRefAo(candidatureFinished.getRefAo());
+                    candidature.setName(prestataire.getPrestataireNom());
+                    candidature.setEmail(prestataire.getPrestataireEmail());
+                    candidature.setLieu(prestataire.getPrestataireLieu());
+                    candidature.setEducations(prestataire.getPrestataireEducation());
+                    candidature.setExperiences(prestataire.getPrestataireExperience());
+                    candidature.setStatus(candidatureFinished.getStatus());
+                    candidatures.add(candidature);
+                } else {
+                    Esn esn = esnRepository.findByEsnUsernameRepresentant(candidatureFinished.getUsername());
+                    Candidature candidature = new Candidature();
+                    candidature.setId(idTask);
+                    candidature.setHasContract(candidatureFinished.getHasContract());
+                    candidature.setTitreAo(candidatureFinished.getTitreAo());
+                    candidature.setRefAo(candidatureFinished.getRefAo());
+                    candidature.setName(esn.getEsnnom());
+                    candidature.setEmail(esn.getEsnEmail());
+                    candidature.setLieu(esn.getEsnLieu());
+                    candidature.setStatus(candidatureFinished.getStatus());
+                    candidatures.add(candidature);
+                }
+            }
             return candidatures;
         }).collect(Collectors.toList());
         return candidatures;
 
 
-
     }
-    public List<Task> getTaskById(String idTask){
-        List<String> listIds=new ArrayList<>();
+
+    public List<Task> getTaskById(String idTask) {
+        List<String> listIds = new ArrayList<>();
         listIds.add(idTask);
         return taskService.createTaskQuery().taskAssigneeIds(listIds).list();
 

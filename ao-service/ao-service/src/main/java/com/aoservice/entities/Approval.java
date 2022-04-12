@@ -1,5 +1,8 @@
 package com.aoservice.entities;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Approval {
 
     private String id;
@@ -25,8 +28,8 @@ public class Approval {
 		super();
 		this.status = status;
 	}
-
-    public Approval(String id, boolean status) {
+    @JsonCreator
+    public Approval(@JsonProperty("id")String id, @JsonProperty("status")boolean status) {
         this.id = id;
         this.status = status;
     }
