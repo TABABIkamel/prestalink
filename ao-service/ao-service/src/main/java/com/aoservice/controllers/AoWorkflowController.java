@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring4.SpringTemplateEngine;
@@ -68,8 +69,8 @@ public class AoWorkflowController {
 //        KeycloakSecurityContext keycloakSecurityContext=principal.getKeycloakSecurityContext();
 //        keycloakSecurityContext.getToken().getId();
 //        Prestataire prestataire=prestataireRepository.findByPrestataireUsername(candidature.getUsername());
-
         aoWorkflowService.startProcess(candidature);
+
     }
     @GetMapping("/tasks/{assignee}")
     public List<Candidature> getTasks(@PathVariable("assignee") String assignee) {

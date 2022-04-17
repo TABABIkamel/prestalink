@@ -10,4 +10,5 @@ import java.util.List;
 public interface CandidatureFinishedRepository extends JpaRepository<CandidatureFinished,Long> {
     CandidatureFinished findByIdTask(String idTask);
     List<CandidatureFinished> findByUsername(String username);
+
 }

@@ -2,9 +2,10 @@ package com.aoservice.controllers;
 
 import com.aoservice.dto.ContratDto;
 import com.aoservice.entities.*;
-import com.aoservice.repositories.CandidatureFinishedRepository;
-import com.aoservice.repositories.EsnRepository;
-import com.aoservice.repositories.PrestataireRepository;
+import com.aoservice.repositories.*;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+import org.apache.commons.io.FileUtils;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
 import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
@@ -15,7 +16,6 @@ import com.aoservice.configurationMapper.AppelOffreMapper;
 import com.aoservice.dto.AppelOffreDto;
 import com.aoservice.exceptions.coreExceptionClasses.ErrorMessages;
 import com.aoservice.exceptions.exceptionClasses.AppelOffreNotFoundException;
-import com.aoservice.repositories.AppellOffreRepository;
 import lombok.Data;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
@@ -54,11 +54,15 @@ public class AppelOffreController {
     private CandidatureFinishedRepository candidatureFinishedRepository;
     @Autowired
     private KeycloakRestTemplate keycloakRestTemplate;
+    @Autowired
+    private MissionRepository missionRepository;
+    @Autowired
+    private UrlContractRepository urlContractRepository;
     private AppelOffreMapper mapper = Mappers.getMapper(AppelOffreMapper.class);
 
     @PostMapping(value = "/generateContrat")
     @ResponseBody
-    public void generateContrat(@RequestBody ContratDto contrat, HttpServletResponse response) throws IOException, JRException {
+    public void generateContrat(@RequestBody ContratDto contrat, HttpServletRequest request) throws IOException, JRException {
 
         JRBeanCollectionDataSource jrBeanCollectionDataSource = new JRBeanCollectionDataSource(Arrays.asList(new Approval(false)));
         JasperReport compile = JasperCompileManager.compileReport(new FileInputStream("src/main/resources/jaspertest.jrxml"));
@@ -93,33 +97,48 @@ public class AppelOffreController {
             map.put("duree", duree);
         }
         JasperPrint jasper = JasperFillManager.fillReport(compile, map, jrBeanCollectionDataSource);
-        //    	JasperExportManager.exportReportToPdfFile(jasper,"facture.pdf");
-        //byte data[] = JasperExportManager.exportReportToPdf(jasper);
-        //HttpHeaders headers = new HttpHeaders();
-        //headers.add("Content-Disposition", "inline; filename=citiesreport.pdf");
-
-        //response.setContentType("application/x-download");
-//        response.setContentType("APPLICATION/OCTET-STREAM");
-//        String disHeader = "Attachment;Filename=\"ReportFile.pdf" + "\"";
-//        response.setHeader("Content-Disposition", disHeader);
-//        OutputStream out = response.getOutputStream();
-//        File pdf = File.createTempFile("joelle", ".pdf");
-//        FileOutputStream out = new FileOutputStream(pdf) ;
-//        JasperExportManager.exportReportToPdfStream(jasper,out);
-        //return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(data);
-
-        // Make sure the output directory exists.
-        File outDir = new File("C:/prestalink/sony");
+        //store contrat sous FS
+        KeycloakAuthenticationToken token=(KeycloakAuthenticationToken) request.getUserPrincipal();
+        KeycloakPrincipal principal = (KeycloakPrincipal) token.getPrincipal();
+        KeycloakSecurityContext keycloakSecurityContext=principal.getKeycloakSecurityContext();
+        File outDir = new File("C:/prestalink/"+keycloakSecurityContext.getToken().getGivenName());
         outDir.mkdirs();
-
-        // Export to PDF.
         try{
             JasperExportManager.exportReportToPdfFile(jasper,
-                    "C:/prestalink/sony/contract_"+contrat.getRefAo()+"_"+contrat.getNomPrestataire()+"_"+contrat.getPrenomPrestataire()+".pdf");
+                    "C:/prestalink/"+keycloakSecurityContext.getToken().getGivenName()+"/contract_"+contrat.getRefAo()+"_"+contrat.getNomPrestataire()+"_"+contrat.getPrenomPrestataire()+".pdf");
+            File contratFile=FileUtils.getFile("C:/prestalink/"+keycloakSecurityContext.getToken().getGivenName()+"/contract_"+contrat.getRefAo()+"_"+contrat.getNomPrestataire()+"_"+contrat.getPrenomPrestataire()+".pdf");
+
             System.out.println("Done!");
             CandidatureFinished candidatureFinished=candidatureFinishedRepository.findByIdTask(contrat.getIdCandidature());
             candidatureFinished.setHasContract(true);
             candidatureFinishedRepository.save(candidatureFinished);
+            ////// start upload file to cloudinary
+            Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
+                    "cloud_name", "dhum7apjy",
+                    "api_key", "265837847724928",
+                    "api_secret", "CVKzJr7cldr0au9oFSh6t3mGqzw"));
+            Map uploadResult = cloudinary.uploader().upload(contratFile, ObjectUtils.emptyMap());
+            System.out.println(uploadResult.get("url"));
+            /////// end upload file to cloudinary
+
+            //////create mission or update his urls contract if exist
+            Mission mission=missionRepository.getMissionByIdAppelOffre(appelOffre.get().getId());
+            if(mission==null) {
+                Mission newMission = new Mission();
+                Mission newMissionSaved=missionRepository.save(newMission);
+                newMissionSaved.setAppelOffre(appelOffre.get());
+                missionRepository.save(newMissionSaved);
+                UrlContract urlContract=new UrlContract();
+                urlContract.setUrlContrat(uploadResult.get("url").toString());
+                urlContract.setMission(newMissionSaved);
+                urlContractRepository.save(urlContract);
+
+            }else{
+                UrlContract urlContract=new UrlContract();
+                urlContract.setUrlContrat(uploadResult.get("url").toString());
+                urlContract.setMission(mission);
+                urlContractRepository.save(urlContract);
+            }
         }catch (Exception ex){
             System.out.println(ex.getCause());
         }
