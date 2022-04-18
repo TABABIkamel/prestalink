@@ -14,11 +14,8 @@ public class Mission {
     @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     private AppelOffre appelOffre;
-    @OneToOne
-    private Contrat contrat;
-    public Mission() {
+        public Mission() {
     }
-
 
     public Long getId() {
         return id;
@@ -44,11 +41,4 @@ public class Mission {
         this.appelOffre = appelOffre;
     }
 
-    public Contrat getContrat() {
-        return contrat;
     }
-
-    public void setContrat(Contrat contrat) {
-        this.contrat = contrat;
-    }
-}

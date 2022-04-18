@@ -15,4 +15,8 @@ import java.util.List;
     @Query("SELECT ao FROM AppelOffre ao where ao.id=:idPost ")
     AppelOffre getAoById(@Param("idPost") Long idPost);
     AppelOffre findByRefAo(String refAo);
+
+
+    @Query("SELECT ao FROM AppelOffre ao join ao.esn esn where esn.esnUsernameRepresentant=:usernameEsn")
+    List<AppelOffre> getAoByUsernameEsn(@Param("usernameEsn") String usernameEsn);
 }

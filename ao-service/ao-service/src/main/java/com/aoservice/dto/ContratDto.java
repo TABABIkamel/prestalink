@@ -9,14 +9,14 @@ public class ContratDto {
     private String refAo;
     private String nomSocieteClient;
     private String formeJuriqiqueClient;
-    private Double capitaleSocieteClient;
+    private String capitaleSocieteClient;
     private String lieuSiegeClient;
-    private Long numeroRegitreCommerceClient;
+    private String numeroRegitreCommerceClient;
     private String nomRepresentantSocieteClient;
     private String nomPrestataire;
     private String prenomPrestataire;
     private String lieuPrestataire;
-    private Long cin;
+    private String cin;
     private String preambule;
     private Float prixTotaleMission;
     private Float penalisationParJour;
@@ -55,13 +55,7 @@ public class ContratDto {
         this.formeJuriqiqueClient = formeJuriqiqueClient;
     }
 
-    public Double getCapitaleSocieteClient() {
-        return capitaleSocieteClient;
-    }
 
-    public void setCapitaleSocieteClient(Double capitaleSocieteClient) {
-        this.capitaleSocieteClient = capitaleSocieteClient;
-    }
 
     public String getLieuSiegeClient() {
         return lieuSiegeClient;
@@ -71,13 +65,6 @@ public class ContratDto {
         this.lieuSiegeClient = lieuSiegeClient;
     }
 
-    public Long getNumeroRegitreCommerceClient() {
-        return numeroRegitreCommerceClient;
-    }
-
-    public void setNumeroRegitreCommerceClient(Long numeroRegitreCommerceClient) {
-        this.numeroRegitreCommerceClient = numeroRegitreCommerceClient;
-    }
 
     public String getNomRepresentantSocieteClient() {
         return nomRepresentantSocieteClient;
@@ -109,14 +96,6 @@ public class ContratDto {
 
     public void setLieuPrestataire(String lieuPrestataire) {
         this.lieuPrestataire = lieuPrestataire;
-    }
-
-    public Long getCin() {
-        return cin;
-    }
-
-    public void setCin(Long cin) {
-        this.cin = cin;
     }
 
     public String getPreambule() {
@@ -157,5 +136,29 @@ public class ContratDto {
 
     public void setRefAo(String refAo) {
         this.refAo = refAo;
+    }
+
+    public String getCapitaleSocieteClient() {
+        return capitaleSocieteClient;
+    }
+
+    public void setCapitaleSocieteClient(String capitaleSocieteClient) {
+        this.capitaleSocieteClient = capitaleSocieteClient;
+    }
+
+    public String getNumeroRegitreCommerceClient() {
+        return numeroRegitreCommerceClient;
+    }
+
+    public void setNumeroRegitreCommerceClient(String numeroRegitreCommerceClient) {
+        this.numeroRegitreCommerceClient = numeroRegitreCommerceClient;
+    }
+
+    public String getCin() {
+        return cin;
+    }
+
+    public void setCin(String cin) {
+        this.cin = cin;
     }
 }

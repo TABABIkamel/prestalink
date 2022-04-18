@@ -1,6 +1,9 @@
 package com.aoservice.entities;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -21,6 +24,7 @@ public class Esn  {
     private boolean esnIsCompleted;
     private String locationImage;
     private boolean esnIsPrestataire;
+
     @OneToMany(cascade = CascadeType.ALL,mappedBy="esn")
     private Set<AppelOffre> appelOffres;
     @ManyToMany(cascade = CascadeType.ALL,mappedBy="esns")

@@ -13,12 +13,12 @@
     </parameter>
     <parameter name="nom" class="java.lang.String" />
     <parameter name="lieu" class="java.lang.String" />
-    <parameter name="capital" class="java.lang.Double" />
+    <parameter name="capital" class="java.lang.String" />
     <parameter name="nomRepresentantSociete" class="java.lang.String" />
-    <parameter name="numeroRegitre" class="java.lang.Long" />
+    <parameter name="numeroRegitre" class="java.lang.String" />
     <parameter name="nomPrestataire" class="java.lang.String" />
     <parameter name="prenomPrestataire" class="java.lang.String" />
-    <parameter name="cin" class="java.lang.Long" />
+    <parameter name="cin" class="java.lang.String" />
     <parameter name="lieuPrestataire" class="java.lang.String" />
     <parameter name="prixTotaleMission" class="java.lang.Float" />
     <parameter name="preambule" class="java.lang.String" />
@@ -47,7 +47,7 @@
             <reportElement x="0" y="0" width="580" height="772" uuid="2f795f8a-43fa-4b89-a173-76854a13ba48"/>
             <textElement markup="html"/>
             <textFieldExpression><![CDATA["Entre les soussignés :<br/> La société "+$P{nom} +" au capital de "
-            + java.text.NumberFormat.getNumberInstance().format($P{capital}) + " USD ,enregistrée au Registre du Commerce et des Sociétés de "+$P{lieu}+" sous le numéro " +$P{numeroRegitre}+", Représentée par M "+$P{nomRepresentantSociete}+" "+$P{title}+"<br/>ci-après désignée « Le Client »,<br/> d'une part,<br/> et <br/>M(me) "+$P{nomPrestataire}+" "+$P{prenomPrestataire}+" le propriétaire de la carte d’identité numéro "+$P{cin}+" délivré à "+$P{lieuPrestataire}+"<br/> ci-après dénommée « le Prestataire de services » ou « le Prestataire »,<br/>d'autre part,<br/>il a été convenu ce qui suit :<br/>"
+            + $P{capital} + " USD ,enregistrée au Registre du Commerce et des Sociétés de "+$P{lieu}+" sous le numéro " +$P{numeroRegitre}+", Représentée par M "+$P{nomRepresentantSociete}+" "+$P{title}+"<br/>ci-après désignée « Le Client »,<br/> d'une part,<br/> et <br/>M(me) "+$P{nomPrestataire}+" "+$P{prenomPrestataire}+" le propriétaire de la carte d’identité numéro "+$P{cin}+" délivré à "+$P{lieuPrestataire}+"<br/> ci-après dénommée « le Prestataire de services » ou « le Prestataire »,<br/>d'autre part,<br/>il a été convenu ce qui suit :<br/>"
             +"<br/><b>Préambule</b><br/><br/>"+$P{preambule}+"<br/>"
             +"Ceci exposé,<br/>"
             +"il a été convenu ce qui suit :<br/>"

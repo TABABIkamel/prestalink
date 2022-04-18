@@ -1,30 +1,16 @@
 package com.aoservice.controllers;
 
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.aoservice.dto.Details;
 import com.aoservice.entities.*;
 import com.aoservice.repositories.*;
 import com.aoservice.service.AoWorkflowService;
-import org.flowable.engine.history.HistoricDetail;
 import org.flowable.task.api.Task;
-import org.flowable.task.api.history.HistoricTaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.spring4.SpringTemplateEngine;
-
-import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
+import java.util.List;
+
 
 @RequestMapping(value = "/api/ao")
 @RestController
@@ -42,12 +28,6 @@ public class AoWorkflowController {
     @Autowired
     private AppellOffreRepository appellOffreRepository;
 
-    //    @Autowired
-//    AppellOffreRepository appellOffreRepository;
-//    @GetMapping("/getAoById/{idAo}")
-//    public AppelOffre getEsnByIdAo(@PathVariable("idAo")Long idAo){
-//        return appellOffreRepository.getAoById(idAo);
-//    }
     @GetMapping("/getPrestataire/{username}")
     public Prestataire getPrestataireByUsername(@PathVariable("username")String username){
         return prestataireRepository.findByPrestataireUsername(username);
@@ -64,11 +44,7 @@ public class AoWorkflowController {
     @PostMapping("/submit")
     @ResponseBody
     public void submit(@RequestBody Candidature candidature, HttpServletRequest request) {
-//        KeycloakAuthenticationToken token=(KeycloakAuthenticationToken) request.getUserPrincipal();
-//        KeycloakPrincipal principal = (KeycloakPrincipal) token.getPrincipal();
-//        KeycloakSecurityContext keycloakSecurityContext=principal.getKeycloakSecurityContext();
-//        keycloakSecurityContext.getToken().getId();
-//        Prestataire prestataire=prestataireRepository.findByPrestataireUsername(candidature.getUsername());
+
         aoWorkflowService.startProcess(candidature);
 
     }

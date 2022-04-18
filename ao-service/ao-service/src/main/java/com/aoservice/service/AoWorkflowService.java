@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.context.event.EventListener;
+
 @Service
 public class AoWorkflowService {
     @Autowired
@@ -54,12 +55,13 @@ public class AoWorkflowService {
     public void remove(String sessionId) {
         listeners.remove(sessionId);
     }
+
     //end
     @Transactional
     public void startProcess(Candidature candidature) {
         AppelOffre appelOffre = appellOffreRepository.getAoById(candidature.getIdPost());
         Prestataire prestataire = prestataireRepository.findByPrestataireUsername(candidature.getUsername());
-        Notification notification=new Notification();
+        Notification notification = new Notification();
         candidature.setTitreAo(appelOffre.getTitreAo());
         candidature.setRefAo(appelOffre.getRefAo());
         Map<String, Object> variables = new HashMap<String, Object>();
@@ -114,9 +116,9 @@ public class AoWorkflowService {
                     return null;
                 })
                 .collect(Collectors.toList());
-        String payload = candidature.getName()+" a postulé à votre appel offre "+ appelOffre.getTitreAo();
+        String payload = candidature.getName() + " a postulé à votre appel offre " + appelOffre.getTitreAo();
         for (String listener : listeners) {
-           // LOGGER.info("Sending notification to " + listener);
+            // LOGGER.info("Sending notification to " + listener);
 
             SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
             headerAccessor.setSessionId(listener);
@@ -125,17 +127,16 @@ public class AoWorkflowService {
             //int value = (int) Math.round(Math.random() * 100d);
             template.convertAndSendToUser(
                     listener,
-                    "/notification/item"+appelOffre.getEsn().getEsnUsernameRepresentant(),
+                    "/notification/item" + appelOffre.getEsn().getEsnUsernameRepresentant(),
                     payload,
                     headerAccessor.getMessageHeaders());
         }
         //store notification in database
-        notification.setContent(candidature.getName()+" a postulé à votre appel offre "+ appelOffre.getTitreAo());
+        notification.setContent(candidature.getName() + " a postulé à votre appel offre " + appelOffre.getTitreAo());
         notification.setUsernameSender(candidature.getUsername());
         notification.setUsernameReceiver(appelOffre.getEsn().getEsnUsernameRepresentant());
         notificationRepository.save(notification);
     }
-
 
 
     @Transactional
@@ -167,19 +168,19 @@ public class AoWorkflowService {
     @Transactional
     public void submitReview(Approval approval) {
         Map<String, Object> variables = new HashMap<String, Object>();
-        Notification notification=new Notification();
+        Notification notification = new Notification();
         variables.put("approved", approval.isStatus());
         taskService.complete(approval.getId(), variables);
         Optional<CandidatureFinished> candidatureFinished = Optional.ofNullable(candidatureFinishedRepository.findByIdTask(approval.getId()));
-        if(candidatureFinished.isPresent()){
-        if ( approval.isStatus()) {
-            candidatureFinished.get().setStatus("ACCEPTED");
-        } else
-            candidatureFinished.get().setStatus("REJECTED");
+        if (candidatureFinished.isPresent()) {
+            if (approval.isStatus()) {
+                candidatureFinished.get().setStatus("ACCEPTED");
+            } else
+                candidatureFinished.get().setStatus("REJECTED");
         }
         // start this code is for send notification
-        if(candidatureFinished.isPresent()){
-           Optional<AppelOffre> appelOffre= Optional.ofNullable(appellOffreRepository.findByRefAo(candidatureFinished.get().getRefAo()));
+        if (candidatureFinished.isPresent()) {
+            Optional<AppelOffre> appelOffre = Optional.ofNullable(appellOffreRepository.findByRefAo(candidatureFinished.get().getRefAo()));
             for (String listener : listeners) {
                 // LOGGER.info("Sending notification to " + listener);
 
@@ -190,11 +191,11 @@ public class AoWorkflowService {
                 //int value = (int) Math.round(Math.random() * 100d);
                 template.convertAndSendToUser(
                         listener,
-                        "/notification/item"+candidatureFinished.get().getUsername(),
-                        appelOffre.get().getEsn().getEsnnom()+" a examiné votre candidature pour l appel offre "+appelOffre.get().getTitreAo(),
+                        "/notification/item" + candidatureFinished.get().getUsername(),
+                        appelOffre.get().getEsn().getEsnnom() + " a examiné votre candidature pour l appel offre " + appelOffre.get().getTitreAo(),
                         headerAccessor.getMessageHeaders());
             }
-            notification.setContent(appelOffre.get().getEsn().getEsnnom()+" a examiné votre candidature pour l appel offre "+appelOffre.get().getTitreAo());
+            notification.setContent(appelOffre.get().getEsn().getEsnnom() + " a examiné votre candidature pour l appel offre " + appelOffre.get().getTitreAo());
             notification.setUsernameSender(appelOffre.get().getEsn().getEsnnom());
             notification.setUsernameReceiver(candidatureFinished.get().getUsername());
             notification.setUrlImageReceiver(appelOffre.get().getEsn().getLocationImage());
@@ -205,7 +206,6 @@ public class AoWorkflowService {
         // end
 
     }
-
     public List<Candidature> getFinishedTask(String assigne) {
         List<HistoricTaskInstance> tasks = historyService.createHistoricTaskInstanceQuery()
                 .finished()
@@ -253,6 +253,7 @@ public class AoWorkflowService {
 
 
     }
+
     public List<Task> getTaskById(String idTask) {
         List<String> listIds = new ArrayList<>();
         listIds.add(idTask);
@@ -260,27 +261,9 @@ public class AoWorkflowService {
 
     }
 
-//    @Scheduled(fixedDelay = 2000)
-//    public void dispatch() {
-//        for (String listener : listeners) {
-//            //LOGGER.info("Sending notification to " + listener);
-//
-//            SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
-//            headerAccessor.setSessionId(listener);
-//            headerAccessor.setLeaveMutable(true);
-//
-//            int value = (int) Math.round(Math.random() * 100d);
-//            template.convertAndSendToUser(
-//                    listener,
-//                    "/notification/item"+1,
-//                    "salem",
-//                    headerAccessor.getMessageHeaders());
-//        }
-//    }
     @EventListener
     public void sessionDisconnectionHandler(SessionDisconnectEvent event) {
         String sessionId = event.getSessionId();
-        //LOGGER.info("Disconnecting " + sessionId + "!");
         remove(sessionId);
     }
 }

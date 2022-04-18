@@ -56,6 +56,11 @@ public class SendAcceptedMailService implements JavaDelegate {
         String username = (String) execution.getVariable("username");
         String titreAo = (String) execution.getVariable("titrAo");
         String nomCandidat = (String) execution.getVariable("Nom Candidat");
+        String esnUsername = (String) execution.getVariable("esn");
+
+        Esn esnHasPostedAo=esnRepository.findByEsnUsernameRepresentant(esnUsername);
+        String nameEsnHasPostedAo=esnHasPostedAo.getEsnnom();
+
         System.out.println(username);
         System.out.println(titreAo);
         System.out.println(nomCandidat);
@@ -74,6 +79,7 @@ public class SendAcceptedMailService implements JavaDelegate {
         Map<String, Object> model = new HashMap<String, Object>();
         model.put("nameCandidat",nomCandidat);
         model.put("titreAo",titreAo);
+        model.put("nameEsnHasPostedAo",nameEsnHasPostedAo);
 
         Context context = new Context();
         context.setVariables(model);

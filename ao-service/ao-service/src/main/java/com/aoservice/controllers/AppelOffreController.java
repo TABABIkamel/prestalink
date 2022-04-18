@@ -1,16 +1,13 @@
 package com.aoservice.controllers;
 
+import com.aoservice.beans.AppelOffreBean;
 import com.aoservice.dto.ContratDto;
 import com.aoservice.entities.*;
 import com.aoservice.repositories.*;
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
-import org.apache.commons.io.FileUtils;
+import com.aoservice.service.AppelOffreService;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
 import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import com.aoservice.configurationMapper.AppelOffreMapper;
 import com.aoservice.dto.AppelOffreDto;
@@ -18,27 +15,14 @@ import com.aoservice.exceptions.coreExceptionClasses.ErrorMessages;
 import com.aoservice.exceptions.exceptionClasses.AppelOffreNotFoundException;
 import lombok.Data;
 import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperExportManager;
-import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperReport;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-
 import org.keycloak.adapters.springsecurity.client.KeycloakRestTemplate;
 import org.mapstruct.factory.Mappers;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import java.io.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -53,97 +37,40 @@ public class AppelOffreController {
     @Autowired
     private CandidatureFinishedRepository candidatureFinishedRepository;
     @Autowired
+    PrestataireRepository prestataireRepository;
+    @Autowired
     private KeycloakRestTemplate keycloakRestTemplate;
     @Autowired
     private MissionRepository missionRepository;
     @Autowired
     private UrlContractRepository urlContractRepository;
-    private AppelOffreMapper mapper = Mappers.getMapper(AppelOffreMapper.class);
+    @Autowired
+    private AppelOffreService appelOffreService;
+    @Autowired
+    private AppelOffreBean appelOffreBean;
+    private final AppelOffreMapper mapper = Mappers.getMapper(AppelOffreMapper.class);
 
     @PostMapping(value = "/generateContrat")
     @ResponseBody
-    public void generateContrat(@RequestBody ContratDto contrat, HttpServletRequest request) throws IOException, JRException {
-
-        JRBeanCollectionDataSource jrBeanCollectionDataSource = new JRBeanCollectionDataSource(Arrays.asList(new Approval(false)));
-        JasperReport compile = JasperCompileManager.compileReport(new FileInputStream("src/main/resources/jaspertest.jrxml"));
-        Map<String, Object> map = new HashMap<>();
-        map.put("title", "jasper test wiw");
-        map.put("minSalary", 1000);
-        map.put("condition", "condition");
-        map.put("nom", contrat.getNomSocieteClient());
-        map.put("lieu", contrat.getLieuSiegeClient());
-        map.put("capital", contrat.getCapitaleSocieteClient());
-        map.put("nomRepresentantSociete", contrat.getNomRepresentantSocieteClient());
-        map.put("numeroRegitre", contrat.getNumeroRegitreCommerceClient());
-        map.put("nomPrestataire", contrat.getNomPrestataire());
-        map.put("prenomPrestataire", contrat.getPrenomPrestataire());
-        map.put("cin", contrat.getCin());
-        map.put("lieuPrestataire", contrat.getLieuPrestataire());
-        map.put("prixTotaleMission", contrat.getPrixTotaleMission());
-        map.put("preambule", contrat.getPreambule());
-        map.put("penalisationParJour", contrat.getPenalisationParJour());
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-        LocalDateTime now = LocalDateTime.now();
-        System.out.println(dtf.format(now));
-        map.put("dateGenerationContrat", dtf.format(now));
-        Optional<AppelOffre> appelOffre= Optional.ofNullable(appellOffreRepository.findByRefAo(contrat.getRefAo()));
-        if(appelOffre.isPresent()){
-            map.put("dateDebut", appelOffre.get().getDateDebutAo().toString());
-            map.put("dateFin", appelOffre.get().getDateFinAo().toString());
-            System.out.println(appelOffre.get().getDateFinAo().getTime()-appelOffre.get().getDateDebutAo().getTime());
-            long resultat = appelOffre.get().getDateFinAo().getTime() - appelOffre.get().getDateDebutAo().getTime();
-            String duree = resultat  + " jours";
-            System.out.println();
-            map.put("duree", duree);
-        }
-        JasperPrint jasper = JasperFillManager.fillReport(compile, map, jrBeanCollectionDataSource);
-        //store contrat sous FS
-        KeycloakAuthenticationToken token=(KeycloakAuthenticationToken) request.getUserPrincipal();
+    public ResponseEntity<Object> generateContrat(@RequestBody ContratDto contrat, HttpServletRequest request) throws IOException, JRException {
+        KeycloakAuthenticationToken token = (KeycloakAuthenticationToken) request.getUserPrincipal();
         KeycloakPrincipal principal = (KeycloakPrincipal) token.getPrincipal();
-        KeycloakSecurityContext keycloakSecurityContext=principal.getKeycloakSecurityContext();
-        File outDir = new File("C:/prestalink/"+keycloakSecurityContext.getToken().getGivenName());
-        outDir.mkdirs();
-        try{
-            JasperExportManager.exportReportToPdfFile(jasper,
-                    "C:/prestalink/"+keycloakSecurityContext.getToken().getGivenName()+"/contract_"+contrat.getRefAo()+"_"+contrat.getNomPrestataire()+"_"+contrat.getPrenomPrestataire()+".pdf");
-            File contratFile=FileUtils.getFile("C:/prestalink/"+keycloakSecurityContext.getToken().getGivenName()+"/contract_"+contrat.getRefAo()+"_"+contrat.getNomPrestataire()+"_"+contrat.getPrenomPrestataire()+".pdf");
+        KeycloakSecurityContext keycloakSecurityContext = principal.getKeycloakSecurityContext();
+        try {
+        Optional<CandidatureFinished> candidatureFinished = Optional.ofNullable(candidatureFinishedRepository.findByIdTask(contrat.getIdCandidature()));
+        Optional<AppelOffre> appelOffre = Optional.ofNullable(appellOffreRepository.findByRefAo(contrat.getRefAo()));
+        JasperPrint jasper=appelOffreBean.generateContract(contrat,appelOffre);
+        appelOffreBean.storeContratSousFs(keycloakSecurityContext,jasper,candidatureFinished,contrat);
+            String contratUrl=appelOffreBean.uploadFileToCloudinary(keycloakSecurityContext,contrat);
+            appelOffreBean.sendMailToInternautes(contratUrl,candidatureFinished,appelOffre);
 
-            System.out.println("Done!");
-            CandidatureFinished candidatureFinished=candidatureFinishedRepository.findByIdTask(contrat.getIdCandidature());
-            candidatureFinished.setHasContract(true);
-            candidatureFinishedRepository.save(candidatureFinished);
-            ////// start upload file to cloudinary
-            Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
-                    "cloud_name", "dhum7apjy",
-                    "api_key", "265837847724928",
-                    "api_secret", "CVKzJr7cldr0au9oFSh6t3mGqzw"));
-            Map uploadResult = cloudinary.uploader().upload(contratFile, ObjectUtils.emptyMap());
-            System.out.println(uploadResult.get("url"));
-            /////// end upload file to cloudinary
-
-            //////create mission or update his urls contract if exist
-            Mission mission=missionRepository.getMissionByIdAppelOffre(appelOffre.get().getId());
-            if(mission==null) {
-                Mission newMission = new Mission();
-                Mission newMissionSaved=missionRepository.save(newMission);
-                newMissionSaved.setAppelOffre(appelOffre.get());
-                missionRepository.save(newMissionSaved);
-                UrlContract urlContract=new UrlContract();
-                urlContract.setUrlContrat(uploadResult.get("url").toString());
-                urlContract.setMission(newMissionSaved);
-                urlContractRepository.save(urlContract);
-
-            }else{
-                UrlContract urlContract=new UrlContract();
-                urlContract.setUrlContrat(uploadResult.get("url").toString());
-                urlContract.setMission(mission);
-                urlContractRepository.save(urlContract);
-            }
-        }catch (Exception ex){
+            Optional<Mission> mission = Optional.ofNullable(missionRepository.getMissionByIdAppelOffre(appelOffre.get().getId()));
+            appelOffreBean.createOrUpdateMission(mission,contratUrl,appelOffre);
+            return new ResponseEntity<>(HttpStatus.CREATED);
+        } catch (Exception ex) {
             System.out.println(ex.getCause());
+            return new ResponseEntity<>(ex.getCause(),HttpStatus.BAD_REQUEST);
         }
-
-
     }
 
     @GetMapping(value = "/allAo")
@@ -193,11 +120,22 @@ public class AppelOffreController {
         if (appelOffre.isPresent()) {
             appelOffre.get().setEsn(esn);
             AppelOffre appelOffreSaved = appellOffreRepository.save(appelOffre.get());
-            appelOffreSaved.setRefAo("AO_"+appelOffreSaved.getId());
+            appelOffreSaved.setRefAo("AO_" + appelOffreSaved.getId());
             appellOffreRepository.save(appelOffreSaved);
             return new ResponseEntity<AppelOffreDto>(mapper.appelOffreToAppelOffreDTO(appelOffreSaved), HttpStatus.CREATED);
         } else
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+    @GetMapping("/getAllAoByUsernameEsn/{username}")
+    public ResponseEntity<List<AppelOffreDto>> getAllAoByUsernameEsn(@PathVariable("username") String username){
+        List<Optional<AppelOffre>> appelOffresByUsernameEsn = appelOffreService.getAoByUsernameEsn(username);
+        if(appelOffreService.getAoByUsernameEsn(username).isEmpty()){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }else{
+            List<AppelOffreDto> appelOffresDtoByUsernameEsn=appelOffresByUsernameEsn.stream().map(ao->mapper.appelOffreToAppelOffreDTO(ao.get())).collect(Collectors.toList());
+            return new ResponseEntity(appelOffresByUsernameEsn,HttpStatus.OK);
+        }
+
     }
 }
 
