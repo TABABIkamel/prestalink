@@ -44,7 +44,6 @@ public class AoWorkflowController {
     @PostMapping("/submit")
     @ResponseBody
     public void submit(@RequestBody Candidature candidature, HttpServletRequest request) {
-
         aoWorkflowService.startProcess(candidature);
 
     }

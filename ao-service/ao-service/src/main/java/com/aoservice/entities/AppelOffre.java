@@ -30,10 +30,10 @@ public class AppelOffre {
     @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     private Esn esn;
-    @JsonBackReference
+    //@JsonBackReference
     @ManyToMany(cascade = CascadeType.ALL)
     private Set<Prestataire> prestataires;
-    @JsonBackReference
+    //@JsonBackReference
     @ManyToMany(cascade = CascadeType.ALL)
     private Set<Esn> esns;
 

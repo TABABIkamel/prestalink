@@ -117,13 +117,13 @@ public class AppelOffreBean {
         return jasper;
 
     }
-    public void storeContratSousFs(KeycloakSecurityContext keycloakSecurityContext,JasperPrint jasper,Optional<CandidatureFinished> candidatureFinished,ContratDto contrat) throws JRException {
+    public void storeContratSousFs(String givenName,JasperPrint jasper,Optional<CandidatureFinished> candidatureFinished,ContratDto contrat) throws JRException {
 
-        File outDir = new File("C:/prestalink/" + keycloakSecurityContext.getToken().getGivenName());
+        File outDir = new File("C:/prestalink/" + givenName);
         outDir.mkdirs();
             JasperExportManager.exportReportToPdfFile(jasper,
-                    "C:/prestalink/" + keycloakSecurityContext.getToken().getGivenName() + "/contract_" + contrat.getRefAo() + "_" + contrat.getNomPrestataire() + "_" + contrat.getPrenomPrestataire() + ".pdf");
-            File contratFile = FileUtils.getFile("C:/prestalink/" + keycloakSecurityContext.getToken().getGivenName() + "/contract_" + contrat.getRefAo() + "_" + contrat.getNomPrestataire() + "_" + contrat.getPrenomPrestataire() + ".pdf");
+                    "C:/prestalink/" + givenName + "/contract_" + contrat.getRefAo() + "_" + contrat.getNomPrestataire() + "_" + contrat.getPrenomPrestataire() + ".pdf");
+            File contratFile = FileUtils.getFile("C:/prestalink/" + givenName + "/contract_" + contrat.getRefAo() + "_" + contrat.getNomPrestataire() + "_" + contrat.getPrenomPrestataire() + ".pdf");
 
             System.out.println("Done!");
             if(candidatureFinished.isPresent()){
@@ -132,8 +132,8 @@ public class AppelOffreBean {
             }
     }
 
-    public String uploadFileToCloudinary(KeycloakSecurityContext keycloakSecurityContext,ContratDto contrat) throws IOException {
-        File contratFile = FileUtils.getFile("C:/prestalink/" + keycloakSecurityContext.getToken().getGivenName() + "/contract_" + contrat.getRefAo() + "_" + contrat.getNomPrestataire() + "_" + contrat.getPrenomPrestataire() + ".pdf");
+    public String uploadFileToCloudinary(String givenName,ContratDto contrat) throws IOException {
+        File contratFile = FileUtils.getFile("C:/prestalink/" + givenName + "/contract_" + contrat.getRefAo() + "_" + contrat.getNomPrestataire() + "_" + contrat.getPrenomPrestataire() + ".pdf");
         Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
                 "cloud_name", "dhum7apjy",
                 "api_key", "265837847724928",

@@ -2,7 +2,9 @@ package com.aoservice.entities;
 
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.LazyCollection;
@@ -30,8 +32,12 @@ public class Prestataire {
     private boolean prestataireIsCompleted;
     @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany(cascade = CascadeType.ALL,mappedBy="prestataire")
+    //@JsonBackReference
+    //cause error
     private List<Education> prestataireEducation;
     @LazyCollection(LazyCollectionOption.FALSE)
+    //@JsonBackReference
+    //cause error
     @OneToMany(cascade = CascadeType.ALL,mappedBy="prestataire")
     private List<Experience> prestataireExperience;
     @ManyToMany(mappedBy="prestataires",cascade = CascadeType.ALL)
