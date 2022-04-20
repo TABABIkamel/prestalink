@@ -9,13 +9,13 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class NotificationsRealTimeController {
 
-    private final NotificationDispatcher dispatcher;
+    //private final NotificationDispatcher dispatcher;
     private final AoWorkflowService aoWorkflowService;
 
     @Autowired
-    public NotificationsRealTimeController(NotificationDispatcher dispatcher,AoWorkflowService aoWorkflowService) {
+    public NotificationsRealTimeController(/*NotificationDispatcher dispatcher,*/AoWorkflowService aoWorkflowService) {
         this.aoWorkflowService=aoWorkflowService;
-        this.dispatcher = dispatcher;
+        //this.dispatcher = dispatcher;
     }
 
     @MessageMapping("/start")
