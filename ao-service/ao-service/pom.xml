@@ -6,7 +6,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.6.4</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath/>
     </parent>
     <groupId>com.prestalink.tb</groupId>
     <artifactId>ao-service</artifactId>
@@ -19,6 +19,11 @@
         <flowable.version>6.4.1</flowable.version>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
@@ -34,7 +39,6 @@
             <artifactId>thymeleaf</artifactId>
             <version>2.1.5.RELEASE</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/net.sf.jasperreports/jasperreports -->
         <dependency>
             <groupId>net.sf.jasperreports</groupId>
             <artifactId>jasperreports</artifactId>
@@ -87,13 +91,6 @@
             <artifactId>keycloak-spring-boot-starter</artifactId>
             <version>13.0.1</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.modelmapper/modelmapper -->
-        <dependency>
-            <groupId>org.modelmapper</groupId>
-            <artifactId>modelmapper</artifactId>
-            <version>2.3.5</version>
-        </dependency>
-		<!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
@@ -142,28 +139,6 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
-        <!---->
-        <!--		<dependency>-->
-        <!--    <groupId>org.springframework.boot</groupId>-->
-        <!--    <artifactId>spring-boot-starter-websocket</artifactId>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-        <!--    <groupId>org.webjars</groupId>-->
-        <!--    <artifactId>webjars-locator-core</artifactId>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-        <!--    <groupId>org.webjars</groupId>-->
-        <!--    <artifactId>sockjs-client</artifactId>-->
-        <!--    <version>1.0.2</version>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-        <!--    <groupId>org.webjars</groupId>-->
-        <!--    <artifactId>stomp-websocket</artifactId>-->
-        <!--    <version>2.3.3</version>-->
-        <!--</dependency>-->
-
-
-        <!---->
     </dependencies>
     <dependencyManagement>
         <dependencies>
@@ -181,17 +156,6 @@
         </dependencies>
 
     </dependencyManagement>
-    <!--	<dependencyManagement>-->
-    <!--		<dependencies>-->
-    <!--			<dependency>-->
-    <!--				<groupId>org.springframework.boot</groupId>-->
-    <!--				<artifactId>spring-boot-dependencies</artifactId>-->
-    <!--				<version>2.2.5.RELEASE</version>-->
-    <!--				<type>pom</type>-->
-    <!--				<scope>import</scope>-->
-    <!--			</dependency>-->
-    <!--		</dependencies>-->
-    <!--	</dependencyManagement>-->
 
     <build>
         <plugins>

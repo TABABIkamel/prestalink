@@ -25,9 +25,9 @@ public class Esn  {
     private String locationImage;
     private boolean esnIsPrestataire;
 
-    @OneToMany(cascade = CascadeType.ALL,mappedBy="esn")
+    @OneToMany(/*cascade = CascadeType.ALL,*/mappedBy="esn")
     private Set<AppelOffre> appelOffres;
-    @ManyToMany(cascade = CascadeType.ALL,mappedBy="esns")
+    @ManyToMany(/*cascade = CascadeType.ALL,*/mappedBy="esns")
     private Set<AppelOffre> appelOffress;
 
     public Esn() {

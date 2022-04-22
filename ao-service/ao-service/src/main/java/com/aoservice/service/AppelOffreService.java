@@ -41,9 +41,16 @@ public class AppelOffreService {
         if(appelOffres.isEmpty()){
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        else
-            return new ResponseEntity<>(appelOffres.stream().map(appelOffre -> mapper.appelOffreToAppelOffreDTO(appelOffre.get())).collect(Collectors.toList()), HttpStatus.OK);
-
+        else{
+            return new ResponseEntity<>(appelOffres.stream()
+                    .map(appelOffre -> {
+                        AppelOffreDto a= mapper.appelOffreToAppelOffreDTO(appelOffre.get());
+                        a.setEsnImage(appelOffre.get().getEsn().getLocationImage());
+                        a.setEsnNom(appelOffre.get().getEsn().getEsnnom());
+                        return a;
+                    })
+                    .collect(Collectors.toList()), HttpStatus.OK);
+        }
     }
 
     public ResponseEntity<String> generateContrat(ContratDto contrat, String givenName) {
@@ -54,9 +61,10 @@ public class AppelOffreService {
             appelOffreBean.storeContratSousFs(givenName, jasper, candidatureFinished, contrat);
             String contratUrl = appelOffreBean.uploadFileToCloudinary(givenName, contrat);
             appelOffreBean.sendMailToInternautes(contratUrl, candidatureFinished, appelOffre);
-
-            Optional<Mission> mission = Optional.ofNullable(missionRepository.getMissionByIdAppelOffre(appelOffre.get().getId()));
-            appelOffreBean.createOrUpdateMission(mission, contratUrl, appelOffre);
+            if(appelOffre.isPresent()) {
+                Optional<Mission> mission = Optional.ofNullable(missionRepository.getMissionByIdAppelOffre(appelOffre.get().getId()));
+                appelOffreBean.createOrUpdateMission(mission, contratUrl, appelOffre);
+            }
             return new ResponseEntity<>("Done", HttpStatus.OK);
         } catch (Exception ex) {
             System.out.println(ex.getCause());
@@ -106,4 +114,41 @@ public class AppelOffreService {
         } else
             return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
     }
+
+    public ResponseEntity<AppelOffreDto> editAo(AppelOffreDto appelOffreDto, String username) {
+        Esn esn = esnRepository.findByEsnUsernameRepresentant(username);
+        Optional<AppelOffre> appelOffre = Optional.ofNullable(mapper.appelOffreDTOtoAppelOffre(appelOffreDto));
+        if (appelOffre.isPresent()) {
+            appelOffre.get().setEsn(esn);
+            AppelOffre appelOffreSaved = appellOffreRepository.save(appelOffre.get());
+            return new ResponseEntity<>(mapper.appelOffreToAppelOffreDTO(appelOffreSaved),HttpStatus.CREATED) ;
+        } else
+            return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+    }
+
+    public ResponseEntity<String> deleteAo(Long id){
+
+        if(id!=null){
+            appellOffreRepository.deleteById(id);
+            return new ResponseEntity<>("deleted",HttpStatus.OK);
+        }else
+            return new ResponseEntity<>("not deleted",HttpStatus.BAD_REQUEST);
+    }
+
+    public ResponseEntity<AppelOffreDto> getAoById(Long id){
+        Optional<AppelOffre> appelOffre = Optional.ofNullable(appellOffreRepository.getAoById(id));
+        if(appelOffre.isPresent()){
+            return new ResponseEntity<>(mapper.appelOffreToAppelOffreDTO(appelOffre.get()),HttpStatus.OK);
+        }else
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+//    public ResponseEntity<AppelOffreDto> editAo(AppelOffreDto appelOffreDto){
+//        Optional<AppelOffre> appelOffre = Optional.ofNullable(mapper.appelOffreDTOtoAppelOffre(appelOffreDto));
+//        if(appelOffre.isPresent()){
+//            AppelOffre appelOffreEdited= appellOffreRepository.save(appelOffre.get());
+//            return new ResponseEntity<>(mapper.appelOffreToAppelOffreDTO(appelOffreEdited),HttpStatus.OK);
+//        }else
+//            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+//    }
 }

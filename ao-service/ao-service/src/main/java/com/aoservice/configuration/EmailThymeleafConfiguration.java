@@ -14,14 +14,14 @@ public class EmailThymeleafConfiguration {
 
     @Bean
     public SpringTemplateEngine springTemplateEngine() {
-        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+        var templateEngine = new SpringTemplateEngine();
         templateEngine.addTemplateResolver(htmlTemplateResolver());
         return templateEngine;
     }
 
     @Bean
     public SpringResourceTemplateResolver htmlTemplateResolver() {
-        SpringResourceTemplateResolver pdfTemplateResolver = new SpringResourceTemplateResolver();
+        var pdfTemplateResolver = new SpringResourceTemplateResolver();
         pdfTemplateResolver.setPrefix("classpath:/templates/");
         pdfTemplateResolver.setSuffix(".html");
         pdfTemplateResolver.setTemplateMode(StandardTemplateModeHandlers.HTML5.getTemplateModeName());

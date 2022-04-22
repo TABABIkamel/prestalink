@@ -16,7 +16,6 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring4.SpringTemplateEngine;
 
 import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -28,6 +27,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.log4j.Logger;
 
 @Component
 public class AppelOffreBean {
@@ -45,26 +45,26 @@ public class AppelOffreBean {
     private MissionRepository missionRepository;
     @Autowired
     private UrlContractRepository urlContractRepository;
-    public AppelOffreBean() {
-    }
+    public static final Logger LOGGER = Logger.getLogger(AppelOffreBean.class);
 
-    public void sendMail(String emailReceiver,String name,String nameInternaute,String titreAo,String urlContract) {
-        MimeMessage message = sender.createMimeMessage();
-        MimeMessageHelper helper = null;
+    public void sendMail(String emailReceiver, String name, String nameInternaute, String titreAo, String urlContract) {
+        var message = sender.createMimeMessage();
+        MimeMessageHelper helper =null;
         try {
             helper = new MimeMessageHelper(message,
                     MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
                     StandardCharsets.UTF_8.name());
         } catch (MessagingException e) {
-            e.printStackTrace();
+            LOGGER.info( e.getMessage());
+            /*e.printStackTrace();*/
         }
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         model.put("name",name);
         model.put("nameInternaute",nameInternaute);
         model.put("titreAo",titreAo);
         model.put("urlContract",urlContract);
 
-        Context context = new Context();
+        var context = new Context();
         context.setVariables(model);
         String html = templateEngine.process("send-contract-template", context);
         try {
@@ -72,14 +72,15 @@ public class AppelOffreBean {
             helper.setSubject("CONTRAT");
             helper.setText(html,true);
         } catch (javax.mail.MessagingException e) {
-            e.printStackTrace();
+            /*e.printStackTrace();*/
+            LOGGER.info( e.getMessage());
         }
         sender.send(message);
 
     }
 
     public JasperPrint generateContract(ContratDto contrat, Optional<AppelOffre> appelOffre) throws FileNotFoundException, JRException {
-        JRBeanCollectionDataSource jrBeanCollectionDataSource = new JRBeanCollectionDataSource(Arrays.asList(new Approval(false)));
+        var jrBeanCollectionDataSource = new JRBeanCollectionDataSource(Arrays.asList(new Approval(false)));
         JasperReport compile = JasperCompileManager.compileReport(new FileInputStream("src/main/resources/jaspertest.jrxml"));
         Map<String, Object> map = new HashMap<>();
         map.put("title", "jasper test wiw");
@@ -97,31 +98,31 @@ public class AppelOffreBean {
         map.put("prixTotaleMission", contrat.getPrixTotaleMission());
         map.put("preambule", contrat.getPreambule());
         map.put("penalisationParJour", contrat.getPenalisationParJour());
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-        LocalDateTime now = LocalDateTime.now();
-        System.out.println(dtf.format(now));
+        var dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+        var now = LocalDateTime.now();
         map.put("dateGenerationContrat", dtf.format(now));
         if (appelOffre.isPresent()) {
             map.put("dateDebut", appelOffre.get().getDateDebutAo().toString());
             map.put("dateFin", appelOffre.get().getDateFinAo().toString());
-            System.out.println(appelOffre.get().getDateFinAo().getTime() - appelOffre.get().getDateDebutAo().getTime());
+           /* System.out.println(appelOffre.get().getDateFinAo().getTime() - appelOffre.get().getDateDebutAo().getTime());*/
             long resultat = appelOffre.get().getDateFinAo().getTime() - appelOffre.get().getDateDebutAo().getTime();
             String duree = resultat + " jours";
             map.put("duree", duree);
         }
-        JasperPrint jasper = JasperFillManager.fillReport(compile, map, jrBeanCollectionDataSource);
-        return jasper;
+        return JasperFillManager.fillReport(compile, map, jrBeanCollectionDataSource);
+
 
     }
     public void storeContratSousFs(String givenName,JasperPrint jasper,Optional<CandidatureFinished> candidatureFinished,ContratDto contrat) throws JRException {
-
-        File outDir = new File("C:/prestalink/" + givenName);
+        var path="C:/prestalink/";
+        var path1="/contract_";
+        var outDir = new File(path + givenName);
         outDir.mkdirs();
             JasperExportManager.exportReportToPdfFile(jasper,
-                    "C:/prestalink/" + givenName + "/contract_" + contrat.getRefAo() + "_" + contrat.getNomPrestataire() + "_" + contrat.getPrenomPrestataire() + ".pdf");
-            File contratFile = FileUtils.getFile("C:/prestalink/" + givenName + "/contract_" + contrat.getRefAo() + "_" + contrat.getNomPrestataire() + "_" + contrat.getPrenomPrestataire() + ".pdf");
+                    path+ givenName + path1 + contrat.getRefAo() + "_" + contrat.getNomPrestataire() + "_" + contrat.getPrenomPrestataire() + ".pdf");
+            var contratFile = FileUtils.getFile(path + givenName + path1 + contrat.getRefAo() + "_" + contrat.getNomPrestataire() + "_" + contrat.getPrenomPrestataire() + ".pdf");
 
-            System.out.println("Done!");
+            /*System.out.println("Done!");*/
             if(candidatureFinished.isPresent()){
                 candidatureFinished.get().setHasContract(true);
                 candidatureFinishedRepository.save(candidatureFinished.get());
@@ -129,27 +130,30 @@ public class AppelOffreBean {
     }
 
     public String uploadFileToCloudinary(String givenName,ContratDto contrat) throws IOException {
-        File contratFile = FileUtils.getFile("C:/prestalink/" + givenName + "/contract_" + contrat.getRefAo() + "_" + contrat.getNomPrestataire() + "_" + contrat.getPrenomPrestataire() + ".pdf");
-        Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
+        var path="C:/prestalink/";
+        var path1="/contract_";
+        var contratFile = FileUtils.getFile(path + givenName + path1 + contrat.getRefAo() + "_" + contrat.getNomPrestataire() + "_" + contrat.getPrenomPrestataire() + ".pdf");
+        var cloudinary = new Cloudinary(ObjectUtils.asMap(
                 "cloud_name", "dhum7apjy",
                 "api_key", "265837847724928",
                 "api_secret", "CVKzJr7cldr0au9oFSh6t3mGqzw"));
         Map uploadResult = cloudinary.uploader().upload(contratFile, ObjectUtils.emptyMap());
-        System.out.println(uploadResult.get("url"));
+       /* System.out.println(uploadResult.get("url"));*/
         return uploadResult.get("url").toString();
     }
     public void sendMailToInternautes(String contratUrl,Optional<CandidatureFinished> candidatureFinished,Optional<AppelOffre> appelOffre){
         if(candidatureFinished.isPresent()) {
             Optional<Prestataire> prestataire = Optional.ofNullable(prestataireRepository.findByPrestataireUsername(candidatureFinished.get().getUsername()));
-            if (prestataire.isPresent()) {
+            if (prestataire.isPresent()&&appelOffre.isPresent()) {
                 this.sendMail(prestataire.get().getPrestataireEmail(), prestataire.get().getPrestataireNom(), appelOffre.get().getEsn().getEsnnom(), appelOffre.get().getTitreAo(), contratUrl);
                 this.sendMail(appelOffre.get().getEsn().getEsnEmail(), appelOffre.get().getEsn().getEsnnom(), prestataire.get().getPrestataireNom(), appelOffre.get().getTitreAo(), contratUrl);
 
             } else {
                 Optional<Esn> esn = Optional.ofNullable(esnRepository.findByEsnUsernameRepresentant(candidatureFinished.get().getUsername()));
-                this.sendMail(esn.get().getEsnEmail(), esn.get().getEsnnom(), appelOffre.get().getEsn().getEsnnom(), appelOffre.get().getTitreAo(), contratUrl);
-                this.sendMail(appelOffre.get().getEsn().getEsnEmail(), appelOffre.get().getEsn().getEsnnom(), esn.get().getEsnnom(), appelOffre.get().getTitreAo(), contratUrl);
-
+                if(esn.isPresent() && appelOffre.isPresent()) {
+                    this.sendMail(esn.get().getEsnEmail(), esn.get().getEsnnom(), appelOffre.get().getEsn().getEsnnom(), appelOffre.get().getTitreAo(), contratUrl);
+                    this.sendMail(appelOffre.get().getEsn().getEsnEmail(), appelOffre.get().getEsn().getEsnnom(), esn.get().getEsnnom(), appelOffre.get().getTitreAo(), contratUrl);
+                }
             }
         }
     }
@@ -160,11 +164,14 @@ public class AppelOffreBean {
             urlContract.setMission(mission.get());
             urlContractRepository.save(urlContract);
         } else {
-            Mission newMission = new Mission();
-            Mission newMissionSaved = missionRepository.save(newMission);
-            newMissionSaved.setAppelOffre(appelOffre.get());
+
+                var newMission = new Mission();
+                var newMissionSaved = missionRepository.save(newMission);
+            if(appelOffre.isPresent()) {
+                newMissionSaved.setAppelOffre(appelOffre.get());
+            }
             missionRepository.save(newMissionSaved);
-            UrlContract urlContract = new UrlContract();
+            var urlContract = new UrlContract();
             urlContract.setUrlContrat(contratUrl);
             urlContract.setMission(newMissionSaved);
             urlContractRepository.save(urlContract);

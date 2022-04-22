@@ -18,19 +18,14 @@ import java.util.Collections;
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Bean
     public TomcatServletWebServerFactory tomcatContainerFactory() {
-        TomcatServletWebServerFactory factory = new TomcatServletWebServerFactory();;
+        var factory = new TomcatServletWebServerFactory();
         factory.setTomcatContextCustomizers(Collections.singletonList(tomcatContextCustomizer()));
         return factory;
     }
 
     @Bean
     public TomcatContextCustomizer tomcatContextCustomizer() {
-        return new TomcatContextCustomizer() {
-            @Override
-            public void customize(Context context) {
-                context.addServletContainerInitializer(new WsSci(), null);
-            }
-        };
+        return context -> context.addServletContainerInitializer(new WsSci(), null);
     }
 
     @Override

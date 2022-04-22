@@ -1,46 +1,33 @@
 package com.aoservice.controllers;
 
-import com.aoservice.beans.AppelOffreBean;
 import com.aoservice.dto.ContratDto;
-import com.aoservice.entities.*;
-import com.aoservice.repositories.*;
 import com.aoservice.service.AppelOffreService;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
 import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
-import com.aoservice.configurationMapper.AppelOffreMapper;
 import com.aoservice.dto.AppelOffreDto;
-import org.keycloak.adapters.springsecurity.client.KeycloakRestTemplate;
-import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
-import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "*")
 @RestControllerAdvice
 @RequestMapping("/api/ao")
 public class AppelOffreController {
 
     @Autowired
-    private KeycloakRestTemplate keycloakRestTemplate;
-
-    @Autowired
     private AppelOffreService appelOffreService;
-
-    private final AppelOffreMapper mapper = Mappers.getMapper(AppelOffreMapper.class);
 
     @PostMapping(value = "/generateContrat")
     @ResponseBody
-    public ResponseEntity<String> generateContrat(@RequestBody ContratDto contrat, HttpServletRequest request)  {
+    public ResponseEntity<String> generateContrat(@RequestBody ContratDto contrat, HttpServletRequest request) {
         KeycloakAuthenticationToken token = (KeycloakAuthenticationToken) request.getUserPrincipal();
         KeycloakPrincipal principal = (KeycloakPrincipal) token.getPrincipal();
         KeycloakSecurityContext keycloakSecurityContext = principal.getKeycloakSecurityContext();
-        String givenName=keycloakSecurityContext.getToken().getGivenName();
-        return appelOffreService.generateContrat(contrat,givenName);
+        String givenName = keycloakSecurityContext.getToken().getGivenName();
+        return appelOffreService.generateContrat(contrat, givenName);
     }
 
     @GetMapping(value = "/allAo")
@@ -60,23 +47,31 @@ public class AppelOffreController {
         KeycloakAuthenticationToken token = (KeycloakAuthenticationToken) request.getUserPrincipal();
         KeycloakPrincipal principal = (KeycloakPrincipal) token.getPrincipal();
         KeycloakSecurityContext keycloakSecurityContext = principal.getKeycloakSecurityContext();
-        String username= keycloakSecurityContext.getToken().getPreferredUsername();
-        return appelOffreService.createAo(appelOffreDto,username);
+        String username = keycloakSecurityContext.getToken().getPreferredUsername();
+        return appelOffreService.createAo(appelOffreDto, username);
     }
+
     @GetMapping("/getAllAoByUsernameEsn/{username}")
-    public ResponseEntity<List<AppelOffreDto>> getAllAoByUsernameEsn(@PathVariable("username") String username){
+    public ResponseEntity<List<AppelOffreDto>> getAllAoByUsernameEsn(@PathVariable("username") String username) {
         return appelOffreService.getAoByUsernameEsn(username);
 
     }
+    @DeleteMapping("/deleteAo/{id}")
+    public ResponseEntity<String> deleteAo(@PathVariable("id") Long id) {
+        return appelOffreService.deleteAo(id);
+
+    }
+    @GetMapping("/getAoById/{id}")
+    public ResponseEntity<AppelOffreDto> getAoById(@PathVariable("id") Long id) {
+        return appelOffreService.getAoById(id);
+    }
+    @PutMapping("/editAo")
+    public ResponseEntity<AppelOffreDto> editAo(@RequestBody AppelOffreDto appelOffreDto, HttpServletRequest request) {
+        KeycloakAuthenticationToken token = (KeycloakAuthenticationToken) request.getUserPrincipal();
+        KeycloakPrincipal principal = (KeycloakPrincipal) token.getPrincipal();
+        KeycloakSecurityContext keycloakSecurityContext = principal.getKeycloakSecurityContext();
+        String username = keycloakSecurityContext.getToken().getPreferredUsername();
+        return appelOffreService.editAo(appelOffreDto, username);
+    }
 }
 
-//@Data
-//class ProfileLikedin {
-//    private String idProfile;
-//    private String profileTitle;
-//    private String location;
-//    private int nbrConnexion;
-//    private String nomProfile;
-//    private HashMap<String, String> experience;
-//    private HashMap<String, String> education;
-//}

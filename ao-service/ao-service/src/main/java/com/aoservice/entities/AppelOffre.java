@@ -31,13 +31,13 @@ public class AppelOffre {
     @ManyToOne(fetch = FetchType.LAZY)
     private Esn esn;
     //@JsonBackReference
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany//(cascade = CascadeType.ALL)
     private Set<Prestataire> prestataires;
     //@JsonBackReference
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany//(cascade = CascadeType.ALL)
     private Set<Esn> esns;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "appelOffre")
+    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "appelOffre")
     private Set<Mission> missions;
 
     public AppelOffre() {

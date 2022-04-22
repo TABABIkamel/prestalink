@@ -12,19 +12,24 @@ import com.aoservice.repositories.EsnRepository;
 import com.aoservice.repositories.PrestataireRepository;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import org.apache.log4j.Logger;
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,11 +40,11 @@ public class CompleteProfileService {
     private PrestataireRepository prestataireRepository;
     private PrestataireMapper mapperPrestataire = Mappers.getMapper(PrestataireMapper.class);
     private EsnMapper mapperEsn = Mappers.getMapper(EsnMapper.class);
-
+    public static final Logger LOGGER = Logger.getLogger(CompleteProfileService.class);
 
     public ResponseEntity<EsnDto> completeProfileEsn(EsnDto esnDto,String username){
         Optional<Esn> esn = Optional.of(mapperEsn.esnDTOtoEsn(esnDto));
-        if(esn.isPresent()){
+        if(esn.get()!=null){
             esn.get().setEsnUsernameRepresentant(username);
             esn.get().setEsnIsCompleted(true);
             esn.get().setEsnIsPrestataire(false);
@@ -52,13 +57,16 @@ public class CompleteProfileService {
     public ResponseEntity<String> setPhotoToEsn(MultipartFile file,String username) throws IOException {
 
         String fileName = file.getOriginalFilename();
-        String prefix = fileName.substring(fileName.lastIndexOf("."));
-        File file1 = null;
+        String prefix = fileName!=null?fileName.substring(fileName.lastIndexOf(".")):"";
+
+        File file1 = new File("");
         try {
+            //FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("w+"));
+            //Files.createTempFile("prefix", "suffix", attr);
             file1 = File.createTempFile(fileName, prefix);
             file.transferTo(file1);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.info(e.getMessage());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } finally {
             File f = new File(file1.toURI());
@@ -84,15 +92,14 @@ public class CompleteProfileService {
     public ResponseEntity<String> setPhotoToPrestataire(MultipartFile file,String username) throws IOException {
 
         String fileName = file.getOriginalFilename();
-        String prefix = fileName.substring(fileName.lastIndexOf("."));
+        String prefix = fileName!=null?fileName.substring(fileName.lastIndexOf(".")):"";
 
-        File file1 = null;
+        File file1 = new File("");
         try {
-
             file1 = File.createTempFile(fileName, prefix);
             file.transferTo(file1);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.info(e.getMessage());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         } finally {

@@ -22,27 +22,28 @@ public class AoWorkflowBean {
     NotificationRepository notificationRepository;
     public void notificationForSubmitReview(Optional<CandidatureFinished> candidatureFinished, Set<String> listeners, SimpMessagingTemplate template){
         if (candidatureFinished.isPresent()) {
-            Notification notification = new Notification();
+            var notification = new Notification();
             Optional<AppelOffre> appelOffre = Optional.ofNullable(appellOffreRepository.findByRefAo(candidatureFinished.get().getRefAo()));
             for (String listener : listeners) {
-                // LOGGER.info("Sending notification to " + listener);
-
-                SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
+                var headerAccessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
                 headerAccessor.setSessionId(listener);
                 headerAccessor.setLeaveMutable(true);
-
-                //int value = (int) Math.round(Math.random() * 100d);
+                if(appelOffre.isPresent()){
                 template.convertAndSendToUser(
                         listener,
                         "/notification/item" + candidatureFinished.get().getUsername(),
+
                         appelOffre.get().getEsn().getEsnnom() + " a examiné votre candidature pour l appel offre " + appelOffre.get().getTitreAo(),
                         headerAccessor.getMessageHeaders());
-            }
+
+
             notification.setContent(appelOffre.get().getEsn().getEsnnom() + " a examiné votre candidature pour l appel offre " + appelOffre.get().getTitreAo());
             notification.setUsernameSender(appelOffre.get().getEsn().getEsnnom());
             notification.setUsernameReceiver(candidatureFinished.get().getUsername());
             notification.setUrlImageReceiver(appelOffre.get().getEsn().getLocationImage());
             notificationRepository.save(notification);
+                }
+            }
         }
     }
 }
