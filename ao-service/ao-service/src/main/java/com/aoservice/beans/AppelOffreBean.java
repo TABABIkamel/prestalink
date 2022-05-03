@@ -157,24 +157,29 @@ public class AppelOffreBean {
             }
         }
     }
-    public void createOrUpdateMission(Optional<Mission> mission,String contratUrl,Optional<AppelOffre> appelOffre){
-        if (mission.isPresent()) {
-            UrlContract urlContract = new UrlContract();
-            urlContract.setUrlContrat(contratUrl);
-            urlContract.setMission(mission.get());
-            urlContractRepository.save(urlContract);
-        } else {
+    public void createMission(String contratUrl,Optional<AppelOffre> appelOffre,Optional<Prestataire> prestataire,Optional<Esn> esn){
+//        if (mission.isPresent()) {
+//            UrlContract urlContract = new UrlContract();
+//            urlContract.setUrlContrat(contratUrl);
+//            urlContract.setMission(mission.get());
+//            urlContractRepository.save(urlContract);
+//        } else {
 
                 var newMission = new Mission();
                 var newMissionSaved = missionRepository.save(newMission);
-            if(appelOffre.isPresent()) {
+            if(appelOffre.isPresent() && prestataire.isPresent()) {
                 newMissionSaved.setAppelOffre(appelOffre.get());
+                newMissionSaved.setUsernamePrestataire(prestataire.get().getPrestataireUsername());
             }
+        if(appelOffre.isPresent() && esn.isPresent()) {
+            newMissionSaved.setAppelOffre(appelOffre.get());
+            newMissionSaved.setUsernamePrestataire(esn.get().getEsnUsernameRepresentant());
+        }
             missionRepository.save(newMissionSaved);
             var urlContract = new UrlContract();
             urlContract.setUrlContrat(contratUrl);
             urlContract.setMission(newMissionSaved);
             urlContractRepository.save(urlContract);
-        }
+       // }
     }
 }

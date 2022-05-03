@@ -1,12 +1,4 @@
 package com.aoservice.entities;
-
-
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.Getter;
-import lombok.Setter;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 
@@ -42,6 +34,9 @@ public class Prestataire {
     private List<Experience> prestataireExperience;
     @ManyToMany(mappedBy="prestataires",cascade = CascadeType.ALL)
     private Set<AppelOffre> appelOffres;
+//    @LazyCollection(LazyCollectionOption.FALSE)
+//    @OneToMany(cascade = CascadeType.ALL,mappedBy="prestataire")
+//    private Set<Mission> prestataireMissions;
     public Prestataire() {
     }
 
@@ -170,4 +165,12 @@ public class Prestataire {
     public void setAppelOffres(Set<AppelOffre> appelOffres) {
         this.appelOffres = appelOffres;
     }
+
+//    public Set<Mission> getPrestataireMissions() {
+//        return prestataireMissions;
+//    }
+//
+//    public void setPrestataireMissions(Set<Mission> prestataireMissions) {
+//        this.prestataireMissions = prestataireMissions;
+//    }
 }

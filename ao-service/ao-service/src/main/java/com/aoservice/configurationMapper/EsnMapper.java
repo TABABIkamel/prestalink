@@ -20,6 +20,7 @@ public interface EsnMapper {
             @Mapping(target="usernameRepresentant", source="esn.esnUsernameRepresentant"),
             @Mapping(target="completed", source="esn.esnIsCompleted"),
             @Mapping(target="prestataire", source="esn.esnIsPrestataire"),
+            @Mapping(target="imageLocation", source="esn.locationImage"),
     })
     EsnDto esnToEsnDTO(Esn esn);
     @Mappings({
@@ -32,6 +33,7 @@ public interface EsnMapper {
             @Mapping(target="esnUsernameRepresentant", source="esnDto.usernameRepresentant"),
             @Mapping(target="esnIsCompleted", source="esnDto.completed"),
             @Mapping(target="esnIsPrestataire", source="esnDto.prestataire"),
+            @Mapping(target="locationImage", source="esnDto.imageLocation"),
     })
     Esn esnDTOtoEsn(EsnDto esnDto);
 }

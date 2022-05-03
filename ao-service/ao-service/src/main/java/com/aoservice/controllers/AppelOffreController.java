@@ -1,6 +1,7 @@
 package com.aoservice.controllers;
 
 import com.aoservice.dto.ContratDto;
+import com.aoservice.response.ContratResponse;
 import com.aoservice.service.AppelOffreService;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
@@ -72,6 +73,16 @@ public class AppelOffreController {
         KeycloakSecurityContext keycloakSecurityContext = principal.getKeycloakSecurityContext();
         String username = keycloakSecurityContext.getToken().getPreferredUsername();
         return appelOffreService.editAo(appelOffreDto, username);
+    }
+
+    @GetMapping("/getAllContratUrlByUsernameForPrestataire/{username}")
+    public ResponseEntity<List<ContratResponse>> getAllContratUrlByUsernameForPrestataire(@PathVariable("username") String username) {
+        return appelOffreService.getAllContratUrlByUsernameForPrestataire(username);
+    }
+
+    @GetMapping("/getAllContratUrlByUsernameForEsn/{username}")
+    public ResponseEntity<HashMap<String, List<ContratResponse>>> getAllContratUrlByUsernameForEsn(@PathVariable("username") String username) {
+        return appelOffreService.getAllContratUrlByUsernameForEsn(username);
     }
 }
 

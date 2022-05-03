@@ -25,6 +25,7 @@ public interface PrestataireMapper {
             @Mapping(target="lieu", source="prestataire.prestataireLieu"),
             @Mapping(target="email", source="prestataire.prestataireEmail"),
             @Mapping(target="completed", source="prestataire.prestataireIsCompleted"),
+            @Mapping(target="imageLocation", source="prestataire.locationImage"),
 //            @Mapping(target="education", source="prestataire.prestataireEducation"),
 //            @Mapping(target="experience", source="prestataire.prestataireExperience"),
     })
@@ -40,6 +41,7 @@ public interface PrestataireMapper {
             @Mapping(target="prestataireLieu", source="prestataireDto.lieu"),
             @Mapping(target="prestataireEmail", source="prestataireDto.email"),
             @Mapping(target="prestataireIsCompleted", source="prestataireDto.completed"),
+            @Mapping(target="locationImage", source="prestataireDto.imageLocation"),
     })
     Prestataire prestataireDTOToPrestataire(PrestataireDto prestataireDto);
 

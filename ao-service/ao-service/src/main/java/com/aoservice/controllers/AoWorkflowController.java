@@ -30,6 +30,10 @@ public class AoWorkflowController {
     public Prestataire getPrestataireByUsername(@PathVariable("username") String username) {
         return prestataireRepository.findByPrestataireUsername(username);
     }
+    @GetMapping("/getUser/{username}")
+    public Prestataire getUserByUsername(@PathVariable("username") String username) {
+        return prestataireRepository.findByPrestataireUsername(username);
+    }
 
     //    @GetMapping("/getEducation/{username}")
 //    public List<Education> getListEducation(@PathVariable("username")String username){
@@ -41,7 +45,6 @@ public class AoWorkflowController {
 //    }
     @PostMapping("/submit")
     @ResponseBody
-    @Consumes(MediaType.APPLICATION_JSON)
     public ResponseEntity<String> submit(@RequestBody Candidature candidature, HttpServletRequest request) {
         return aoWorkflowService.postuler(candidature);
 

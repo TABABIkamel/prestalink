@@ -2,13 +2,12 @@ package com.aoservice.service;
 
 import com.aoservice.beans.AppelOffreBean;
 import com.aoservice.configurationMapper.AppelOffreMapper;
+import com.aoservice.configurationMapper.PrestataireMapper;
 import com.aoservice.dto.AppelOffreDto;
 import com.aoservice.dto.ContratDto;
 import com.aoservice.entities.*;
-import com.aoservice.repositories.AppellOffreRepository;
-import com.aoservice.repositories.CandidatureFinishedRepository;
-import com.aoservice.repositories.EsnRepository;
-import com.aoservice.repositories.MissionRepository;
+import com.aoservice.repositories.*;
+import com.aoservice.response.ContratResponse;
 import net.sf.jasperreports.engine.JasperPrint;
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,6 +30,9 @@ public class AppelOffreService {
     private MissionRepository missionRepository;
     @Autowired
     private EsnRepository esnRepository;
+    @Autowired
+    private PrestataireRepository prestataireRepository;
+    private PrestataireMapper mapperPrestataire = Mappers.getMapper(PrestataireMapper.class);
     private final AppelOffreMapper mapper = Mappers.getMapper(AppelOffreMapper.class);
 
     public ResponseEntity<List<AppelOffreDto>> getAoByUsernameEsn(String username) {
@@ -61,9 +60,15 @@ public class AppelOffreService {
             appelOffreBean.storeContratSousFs(givenName, jasper, candidatureFinished, contrat);
             String contratUrl = appelOffreBean.uploadFileToCloudinary(givenName, contrat);
             appelOffreBean.sendMailToInternautes(contratUrl, candidatureFinished, appelOffre);
-            if(appelOffre.isPresent()) {
-                Optional<Mission> mission = Optional.ofNullable(missionRepository.getMissionByIdAppelOffre(appelOffre.get().getId()));
-                appelOffreBean.createOrUpdateMission(mission, contratUrl, appelOffre);
+            Optional<Prestataire> optionalPrestataire=Optional.ofNullable(new Prestataire());
+            if(candidatureFinished.isPresent()){
+                optionalPrestataire = Optional.ofNullable(prestataireRepository.findByPrestataireUsername(candidatureFinished.get().getUsername()));
+            }
+            if(appelOffre.isPresent() && optionalPrestataire.isPresent()) {
+                appelOffreBean.createMission(contratUrl, appelOffre,optionalPrestataire, Optional.empty());
+            }else if(appelOffre.isPresent() && candidatureFinished.isPresent()){
+                Optional<Esn> esnOptional=Optional.ofNullable(esnRepository.findByEsnUsernameRepresentant(candidatureFinished.get().getUsername()));
+                appelOffreBean.createMission(contratUrl, appelOffre, Optional.empty(),esnOptional);
             }
             return new ResponseEntity<>("Done", HttpStatus.OK);
         } catch (Exception ex) {
@@ -140,6 +145,126 @@ public class AppelOffreService {
         if(appelOffre.isPresent()){
             return new ResponseEntity<>(mapper.appelOffreToAppelOffreDTO(appelOffre.get()),HttpStatus.OK);
         }else
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    public ResponseEntity<List<ContratResponse>> getAllContratUrlByUsernameForPrestataire(String username){
+        List<ContratResponse> contratResponses=new ArrayList<>();
+        Optional<Prestataire> prestataire=Optional.ofNullable(prestataireRepository.findByPrestataireUsername(username));
+        if (prestataire.isPresent()){
+            Set<AppelOffre> appelOffres = prestataire.get().getAppelOffres();
+            List<Mission> missions=new ArrayList<>();
+            for (AppelOffre appelOffre:appelOffres) {
+                for (Mission mission:appelOffre.getMissions()) {
+                    if(mission.getUsernamePrestataire().equals(prestataire.get().getPrestataireUsername())){
+                        missions.add(mission);
+                    }
+                }
+               // missions.addAll(appelOffre.getMissions());
+            }
+            List<UrlContract> urlContracts=new ArrayList<>();
+            for (Mission mission:missions
+                 ) {
+                urlContracts.addAll(mission.getUrlsContrat());
+            }
+
+            for (UrlContract urlContrat:urlContracts
+                 ) {
+//                String url=urlContrat.getUrlContrat();
+//                System.out.println(urlContrat.getUrlContrat());
+                contratResponses.add(new ContratResponse(urlContrat.getUrlContrat(),urlContrat.getMission().getAppelOffre().getTitreAo(),urlContrat.getMission().getAppelOffre().getEsn().getEsnnom()));
+            }
+//            prestataire.get().getAppelOffres().stream()
+//                    .map(appelOffre -> appelOffre.getMissions()
+//                            .stream().map(mission -> mission.getUrlsContrat()
+//                                    .stream().map(urlContract ->{
+//                                        String url=urlContract.getUrlContrat();
+//                                        urlsContrat.add(urlContract.getUrlContrat());
+//                                        System.out.println(url);
+//                                    return urlContract.getUrlContrat();
+//
+//                                    })));
+           return new ResponseEntity<>(contratResponses,HttpStatus.OK);
+        }
+        else
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    public ResponseEntity<HashMap<String, List<ContratResponse>>> getAllContratUrlByUsernameForEsn(String username){
+        //List<String> urlsContrat=new ArrayList<>();
+        HashMap<String, List<ContratResponse>> responseContrats = new HashMap<>();
+        Optional<Esn> esn=Optional.ofNullable(esnRepository.findByEsnUsernameRepresentant(username));
+        if (esn.isPresent()){
+            Set<AppelOffre> appelOffres = esn.get().getAppelOffresPostulated();
+
+            List<Mission> missions=new ArrayList<>();
+            for (AppelOffre appelOffre:appelOffres) {
+                for (Mission mission:appelOffre.getMissions()) {
+                    if(mission.getUsernamePrestataire().equals(esn.get().getEsnUsernameRepresentant())){
+                        missions.add(mission);
+                    }
+                }
+                // missions.addAll(appelOffre.getMissions());
+            }
+            List<UrlContract> urlContracts=new ArrayList<>();
+            for (Mission mission:missions
+            ) {
+                urlContracts.addAll(mission.getUrlsContrat());
+            }
+
+            responseContrats.put("prestataire",urlContracts.stream().map(urlContrat -> new ContratResponse(urlContrat.getUrlContrat(),urlContrat.getMission().getAppelOffre().getTitreAo(),urlContrat.getMission().getAppelOffre().getEsn().getEsnnom())).collect(Collectors.toList()));
+//            for (UrlContract urlContrat:urlContracts
+//            ) {
+////                String url=urlContrat.getUrlContrat();
+////                System.out.println(urlContrat.getUrlContrat());
+//                urlsContrat.put("prestataire",urlContrat.getUrlContrat());
+//            }
+
+            //get url contrat for esn appels offre
+            List<UrlContract> urlContractsProprietaire=new ArrayList<>();
+            Set<AppelOffre> esnAppelOffres = esn.get().getAppelOffres();
+            List<Mission> missionsProprietaire=new ArrayList<>();
+            for (AppelOffre appelOffre:esnAppelOffres) {
+                missionsProprietaire.addAll(appelOffre.getMissions());
+//                for (Mission mission:appelOffre.getMissions()) {
+//                    missionsProprietaire.add(mission);
+//                }
+                // missions.addAll(appelOffre.getMissions());
+            }
+            // // // // HashMap<String,String> urlswithNomInternaute
+            for (Mission mission:missionsProprietaire
+            ) {
+                urlContractsProprietaire.addAll(mission.getUrlsContrat());
+            }
+            responseContrats.put("esn",urlContractsProprietaire.stream()
+                    .map(urlContract -> {
+                        Optional<Prestataire> prestataire=Optional.ofNullable(prestataireRepository.findByPrestataireUsername(urlContract.getMission().getUsernamePrestataire()));
+                        if(prestataire.isPresent())
+                            return new ContratResponse(urlContract.getUrlContrat(),urlContract.getMission().getAppelOffre().getTitreAo(),prestataire.get().getPrestataireNom()+" "+prestataire.get().getPrestatairePrenom());
+                        else {
+                            Optional<Esn> esnOptional = Optional.ofNullable(esnRepository.findByEsnUsernameRepresentant(urlContract.getMission().getUsernamePrestataire()));
+                            return new ContratResponse(urlContract.getUrlContrat(),urlContract.getMission().getAppelOffre().getTitreAo(),esnOptional.get().getEsnnom());
+                        }
+                    }).collect(Collectors.toList()));
+//            for (UrlContract urlContrat:urlContracts
+//            ) {
+////                String url=urlContrat.getUrlContrat();
+////                System.out.println(urlContrat.getUrlContrat());
+//                urlsContrat.put("esn",urlContrat.getUrlContrat());
+//            }
+//            prestataire.get().getAppelOffres().stream()
+//                    .map(appelOffre -> appelOffre.getMissions()
+//                            .stream().map(mission -> mission.getUrlsContrat()
+//                                    .stream().map(urlContract ->{
+//                                        String url=urlContract.getUrlContrat();
+//                                        urlsContrat.add(urlContract.getUrlContrat());
+//                                        System.out.println(url);
+//                                    return urlContract.getUrlContrat();
+//
+//                                    })));
+            return new ResponseEntity<>(responseContrats,HttpStatus.OK);
+        }
+        else
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 

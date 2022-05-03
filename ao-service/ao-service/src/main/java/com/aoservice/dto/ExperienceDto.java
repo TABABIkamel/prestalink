@@ -3,6 +3,7 @@ package com.aoservice.dto;
 import java.util.Date;
 
 public class ExperienceDto {
+    private Long id;
     private String nomSociete;
     private String titrePoste;
     private Date dateDebut;
@@ -12,12 +13,21 @@ public class ExperienceDto {
     public ExperienceDto() {
     }
 
-    public ExperienceDto(String nomSociete, String titrePoste, Date dateDebut, Date dateFin, String descriptionPoste) {
+    public ExperienceDto(Long id,String nomSociete, String titrePoste, Date dateDebut, Date dateFin, String descriptionPoste) {
+        this.id=id;
         this.nomSociete = nomSociete;
         this.titrePoste = titrePoste;
         this.dateDebut = dateDebut;
         this.dateFin = dateFin;
         this.descriptionPoste = descriptionPoste;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getNomSociete() {

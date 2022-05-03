@@ -3,6 +3,7 @@ package com.aoservice.dto;
 import java.util.Date;
 
 public class EducationDto {
+    private Long id;
     private String nomEcole;
     private String typeDiplome;
     private Date dateDebut;
@@ -11,11 +12,20 @@ public class EducationDto {
     public EducationDto() {
     }
 
-    public EducationDto(String nomEcole, String typeDiplome, Date dateDebut, Date dateFin) {
+    public EducationDto(Long id,String nomEcole, String typeDiplome, Date dateDebut, Date dateFin) {
+        this.id=id;
         this.nomEcole = nomEcole;
         this.typeDiplome = typeDiplome;
         this.dateDebut = dateDebut;
         this.dateFin = dateFin;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getNomEcole() {

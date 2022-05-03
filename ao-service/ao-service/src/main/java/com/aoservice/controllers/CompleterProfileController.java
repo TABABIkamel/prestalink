@@ -53,4 +53,35 @@ public class CompleterProfileController {
     public ResponseEntity<PrestataireDto> CompleterProfilPrestataire(@RequestBody PrestataireDto prestataireDto) {
         return completeProfileService.CompleterProfilPrestataire(prestataireDto);
     }
+    @PutMapping(value = "/modifCvPrestataire")
+    @ResponseBody
+    public ResponseEntity<PrestataireDto> modifCvPrestataire(@RequestBody PrestataireDto prestataireDto) {
+        return completeProfileService.modifierCvPrestataire(prestataireDto);
+    }
+
+    @GetMapping(value = "/getPrestataireByUsername/{username}")
+    public ResponseEntity<PrestataireDto> getPrestataireByUsername(@PathVariable("username") String usename) {
+        return completeProfileService.getPrestataireByUsername(usename);
+    }
+    @GetMapping(value = "/getPrestataireWithHisCvByUsername/{username}")
+    public ResponseEntity<PrestataireDto> getPrestataireWithHisCvByUsername(@PathVariable("username") String usename) {
+        return completeProfileService.getPrestataireWithHisCvByUsername(usename);
+    }
+    @GetMapping(value = "/getEsnByUsername/{username}")
+    public ResponseEntity<EsnDto> getEsnByUsername(@PathVariable("username") String usename) {
+        return completeProfileService.getEsnByUsername(usename);
+    }
+
+    @PutMapping(value = "/modifierProfilPrestataire")
+    @ResponseBody
+    public ResponseEntity<String> modifierProfilPrestataire(@RequestBody PrestataireDto prestataireDto) {
+        return completeProfileService.modifierPrestataireProfile(prestataireDto);
+    }
+
+    @PutMapping(value = "/modifierProfilEsn")
+    @ResponseBody
+    public ResponseEntity<String> modifierProfilEsn(@RequestBody EsnDto esnDto) {
+        return completeProfileService.modifierESnProfile(esnDto);
+    }
+
 }

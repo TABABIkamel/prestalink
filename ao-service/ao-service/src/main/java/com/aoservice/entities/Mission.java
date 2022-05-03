@@ -9,11 +9,16 @@ public class Mission {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
+    private String usernamePrestataire;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "mission")
     private Set<UrlContract> urlsContrat;
     @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     private AppelOffre appelOffre;
+
+//    @JsonBackReference
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    private Prestataire prestataire;
         public Mission() {
     }
 
@@ -41,4 +46,18 @@ public class Mission {
         this.appelOffre = appelOffre;
     }
 
+    public String getUsernamePrestataire() {
+        return usernamePrestataire;
     }
+
+    public void setUsernamePrestataire(String usernamePrestataire) {
+        this.usernamePrestataire = usernamePrestataire;
+    }
+//    public Prestataire getPrestataire() {
+//        return prestataire;
+//    }
+//
+//    public void setPrestataire(Prestataire prestataire) {
+//        this.prestataire = prestataire;
+//    }
+}

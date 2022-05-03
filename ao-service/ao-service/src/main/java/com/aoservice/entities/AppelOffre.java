@@ -21,6 +21,7 @@ public class AppelOffre {
     public Date dateFinAo;
     public String descriptionAo;
     public Float tjmAo;
+    private Boolean isDeleted=false;
 
     @Enumerated(EnumType.STRING)
     public Modalite modaliteAo;
@@ -158,5 +159,21 @@ public class AppelOffre {
 
     public void setEsns(Set<Esn> esns) {
         this.esns = esns;
+    }
+
+    public Boolean getDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        isDeleted = deleted;
+    }
+
+    public Set<Mission> getMissions() {
+        return missions;
+    }
+
+    public void setMissions(Set<Mission> missions) {
+        this.missions = missions;
     }
 }

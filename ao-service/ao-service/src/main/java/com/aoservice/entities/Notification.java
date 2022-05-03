@@ -21,6 +21,7 @@ public class Notification {
     private String urlImageReceiver;
 
     public Notification() {
+
     }
 
     public Notification(String content, String usernameSender, String usernameReceiver) {

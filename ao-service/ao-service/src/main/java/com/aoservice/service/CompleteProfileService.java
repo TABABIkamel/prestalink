@@ -2,13 +2,17 @@ package com.aoservice.service;
 
 import com.aoservice.configurationMapper.EsnMapper;
 import com.aoservice.configurationMapper.PrestataireMapper;
+import com.aoservice.dto.EducationDto;
 import com.aoservice.dto.EsnDto;
+import com.aoservice.dto.ExperienceDto;
 import com.aoservice.dto.PrestataireDto;
 import com.aoservice.entities.Education;
 import com.aoservice.entities.Esn;
 import com.aoservice.entities.Experience;
 import com.aoservice.entities.Prestataire;
+import com.aoservice.repositories.EducationRepository;
 import com.aoservice.repositories.EsnRepository;
+import com.aoservice.repositories.ExperienceRepository;
 import com.aoservice.repositories.PrestataireRepository;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
@@ -18,6 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -26,10 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,6 +41,10 @@ public class CompleteProfileService {
     EsnRepository esnRepository;
     @Autowired
     private PrestataireRepository prestataireRepository;
+    @Autowired
+    private EducationRepository educationRepository;
+    @Autowired
+    private ExperienceRepository experienceRepository;
     private PrestataireMapper mapperPrestataire = Mappers.getMapper(PrestataireMapper.class);
     private EsnMapper mapperEsn = Mappers.getMapper(EsnMapper.class);
     public static final Logger LOGGER = Logger.getLogger(CompleteProfileService.class);
@@ -150,6 +157,73 @@ public class CompleteProfileService {
             }
             prestataire.setPrestataireIsCompleted(true);
 
+            for (Education education : educations)
+                education.setPrestataire(prestataire);
+
+            for (Experience experience : experiences)
+                experience.setPrestataire(prestataire);
+            prestataire.setPrestataireEducation(educations);
+            prestataire.setPrestataireExperience(experiences);
+            prestataireRepository.save(prestataire);
+            return new ResponseEntity<>(prestataireDto, HttpStatus.CREATED);
+        } else
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    public ResponseEntity<PrestataireDto> getPrestataireByUsername(String username) {
+        Optional<Prestataire> prestataire=Optional.ofNullable(prestataireRepository.findByPrestataireUsername(username));
+        if (prestataire.isPresent()){
+            return new ResponseEntity<>(mapperPrestataire.prestataireToPrestataireDTO(prestataire.get()),HttpStatus.OK);
+        }
+        else
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    public ResponseEntity<EsnDto> getEsnByUsername(String username) {
+        Optional<Esn> esn=Optional.ofNullable(esnRepository.findByEsnUsernameRepresentant(username));
+        if (esn.isPresent()){
+            return new ResponseEntity<>(mapperEsn.esnToEsnDTO(esn.get()),HttpStatus.OK);
+        }
+        else
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    public ResponseEntity<String> modifierPrestataireProfile(PrestataireDto prestataireDto) {
+        if(prestataireDto!=null){
+            prestataireRepository.save(mapperPrestataire.prestataireDTOToPrestataire(prestataireDto));
+            return new ResponseEntity<>("profile modifié",HttpStatus.OK);
+        }else
+            return new ResponseEntity<>("profile non modifié",HttpStatus.BAD_REQUEST);
+    }
+
+    public ResponseEntity<String> modifierESnProfile(EsnDto esnDto) {
+        if(esnDto!=null){
+            esnRepository.save(mapperEsn.esnDTOtoEsn(esnDto));
+            return new ResponseEntity<>("profile modifié",HttpStatus.OK);
+        }else
+            return new ResponseEntity<>("profile non modifié",HttpStatus.BAD_REQUEST);
+    }
+    public ResponseEntity<PrestataireDto> getPrestataireWithHisCvByUsername(String username) {
+        Optional<Prestataire> prestataire=Optional.ofNullable(prestataireRepository.findByPrestataireUsername(username));
+        if (prestataire.isPresent()){
+//            List<Education> educations=educationRepository.findAll().stream().filter(education -> Objects.equals(education.getPrestataire().getPrestataireId(), prestataire.get().getPrestataireId())).collect(Collectors.toList());
+//            List<Experience> experiences=experienceRepository.
+            PrestataireDto prestataireDto=mapperPrestataire.prestataireToPrestataireDTO(prestataire.get());
+            List<EducationDto> educationsDto=prestataire.get().getPrestataireEducation().stream().map(education -> mapperPrestataire.educationToEducationDTO(education)).collect(Collectors.toList());
+            List<ExperienceDto> experiencesDto = prestataire.get().getPrestataireExperience().stream().map(experience -> mapperPrestataire.experienceToExperienceDTO(experience)).collect(Collectors.toList());
+            prestataireDto.setEducation(educationsDto);
+            prestataireDto.setExperience(experiencesDto);
+            return new ResponseEntity<>(prestataireDto,HttpStatus.OK);
+        }
+        else
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    public ResponseEntity<PrestataireDto> modifierCvPrestataire(PrestataireDto prestataireDto){
+        Prestataire prestataire = mapperPrestataire.prestataireDTOToPrestataire(prestataireDto);
+        List<Education> educations = prestataireDto.getEducation().stream().map(educationDto -> mapperPrestataire.educationDtoToEducation(educationDto)).collect(Collectors.toList());
+        List<Experience> experiences = prestataireDto.getExperience().stream().map(experienceDto -> mapperPrestataire.experienceDtoToExperience(experienceDto)).collect(Collectors.toList());
+        if (prestataire != null) {
             for (Education education : educations)
                 education.setPrestataire(prestataire);
 
