@@ -47,7 +47,7 @@ public class AppelOffreBean {
     private UrlContractRepository urlContractRepository;
     public static final Logger LOGGER = Logger.getLogger(AppelOffreBean.class);
 
-    public void sendMail(String emailReceiver, String name, String nameInternaute, String titreAo, String urlContract) {
+    public void sendMail(String emailReceiver, Map<String, Object> model,String objet,String templateName/*String name, String nameInternaute, String titreAo, String urlContract*/) {
         var message = sender.createMimeMessage();
         MimeMessageHelper helper =null;
         try {
@@ -58,18 +58,18 @@ public class AppelOffreBean {
             LOGGER.info( e.getMessage());
             /*e.printStackTrace();*/
         }
-        Map<String, Object> model = new HashMap<>();
-        model.put("name",name);
-        model.put("nameInternaute",nameInternaute);
-        model.put("titreAo",titreAo);
-        model.put("urlContract",urlContract);
+//        Map<String, Object> model = new HashMap<>();
+//        model.put("name",name);
+//        model.put("nameInternaute",nameInternaute);
+//        model.put("titreAo",titreAo);
+//        model.put("urlContract",urlContract);
 
         var context = new Context();
         context.setVariables(model);
-        String html = templateEngine.process("send-contract-template", context);
+        String html = templateEngine.process(templateName/*"send-contract-template"*/, context);
         try {
             helper.setTo(emailReceiver);
-            helper.setSubject("CONTRAT");
+            helper.setSubject(objet/*"CONTRAT"*/);
             helper.setText(html,true);
         } catch (javax.mail.MessagingException e) {
             /*e.printStackTrace();*/
@@ -145,14 +145,34 @@ public class AppelOffreBean {
         if(candidatureFinished.isPresent()) {
             Optional<Prestataire> prestataire = Optional.ofNullable(prestataireRepository.findByPrestataireUsername(candidatureFinished.get().getUsername()));
             if (prestataire.isPresent()&&appelOffre.isPresent()) {
-                this.sendMail(prestataire.get().getPrestataireEmail(), prestataire.get().getPrestataireNom(), appelOffre.get().getEsn().getEsnnom(), appelOffre.get().getTitreAo(), contratUrl);
-                this.sendMail(appelOffre.get().getEsn().getEsnEmail(), appelOffre.get().getEsn().getEsnnom(), prestataire.get().getPrestataireNom(), appelOffre.get().getTitreAo(), contratUrl);
+                Map<String, Object> modelForPrestataire = new HashMap<>();
+                modelForPrestataire.put("name",prestataire.get().getPrestataireNom());
+                modelForPrestataire.put("nameInternaute",appelOffre.get().getEsn().getEsnnom());
+                modelForPrestataire.put("titreAo",appelOffre.get().getTitreAo());
+                modelForPrestataire.put("urlContract",contratUrl);
+                this.sendMail(prestataire.get().getPrestataireEmail(),modelForPrestataire /*prestataire.get().getPrestataireNom(), appelOffre.get().getEsn().getEsnnom(), appelOffre.get().getTitreAo(), contratUrl*/,"CONTRAT","send-contract-template");
+                Map<String, Object> modelForEsn = new HashMap<>();
+                modelForEsn.put("name",appelOffre.get().getEsn().getEsnnom());
+                modelForEsn.put("nameInternaute",prestataire.get().getPrestataireNom());
+                modelForEsn.put("titreAo",appelOffre.get().getTitreAo());
+                modelForEsn.put("urlContract",contratUrl);
+                this.sendMail(appelOffre.get().getEsn().getEsnEmail(),modelForEsn/* appelOffre.get().getEsn().getEsnnom(), prestataire.get().getPrestataireNom(), appelOffre.get().getTitreAo(), contratUrl*/,"CONTRAT","send-contract-template");
 
             } else {
                 Optional<Esn> esn = Optional.ofNullable(esnRepository.findByEsnUsernameRepresentant(candidatureFinished.get().getUsername()));
                 if(esn.isPresent() && appelOffre.isPresent()) {
-                    this.sendMail(esn.get().getEsnEmail(), esn.get().getEsnnom(), appelOffre.get().getEsn().getEsnnom(), appelOffre.get().getTitreAo(), contratUrl);
-                    this.sendMail(appelOffre.get().getEsn().getEsnEmail(), appelOffre.get().getEsn().getEsnnom(), esn.get().getEsnnom(), appelOffre.get().getTitreAo(), contratUrl);
+                    Map<String, Object> modelForEsnAsPrestataire = new HashMap<>();
+                    modelForEsnAsPrestataire.put("name",esn.get().getEsnnom());
+                    modelForEsnAsPrestataire.put("nameInternaute",appelOffre.get().getEsn().getEsnnom());
+                    modelForEsnAsPrestataire.put("titreAo",appelOffre.get().getTitreAo());
+                    modelForEsnAsPrestataire.put("urlContract",contratUrl);
+                    this.sendMail(esn.get().getEsnEmail(),modelForEsnAsPrestataire/* esn.get().getEsnnom(), appelOffre.get().getEsn().getEsnnom(), appelOffre.get().getTitreAo(), contratUrl*/,"CONTRAT","send-contract-template");
+                    Map<String, Object> modelForEsn2 = new HashMap<>();
+                    modelForEsn2.put("name",appelOffre.get().getEsn().getEsnnom());
+                    modelForEsn2.put("nameInternaute",esn.get().getEsnnom());
+                    modelForEsn2.put("titreAo",appelOffre.get().getTitreAo());
+                    modelForEsn2.put("urlContract",contratUrl);
+                    this.sendMail(appelOffre.get().getEsn().getEsnEmail(),modelForEsn2 /*appelOffre.get().getEsn().getEsnnom(), esn.get().getEsnnom(), appelOffre.get().getTitreAo(), contratUrl*/,"CONTRAT","send-contract-template");
                 }
             }
         }

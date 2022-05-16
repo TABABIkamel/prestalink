@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.aoservice.beans.AoWorkflowBean;
+import com.aoservice.beans.AppelOffreBean;
 import com.aoservice.entities.*;
 import com.aoservice.repositories.*;
 import org.flowable.engine.HistoryService;
@@ -45,6 +46,8 @@ public class AoWorkflowService {
 
     @Autowired
     AoWorkflowBean aoWorkflowBean;
+    @Autowired
+    AppelOffreBean appelOffreBean;
 
     //start notification system
     private final SimpMessagingTemplate template;
@@ -141,11 +144,17 @@ public class AoWorkflowService {
                             payload,
                             headerAccessor.getMessageHeaders());
                 }
+                // send notification par mail
+                Map<String, Object> model = new HashMap<>();
+                model.put("name",candidatureOptional.get().getName());
+                model.put("titreAo",appelOffre.getTitreAo());
+                appelOffreBean.sendMail(appelOffre.getEsn().getEsnEmail(),model,"Notification À propos "+appelOffre.getTitreAo(),"mail-notification-esn");
                 //store notification in database
                 notification.setContent(candidatureOptional.get().getName() + " a postulé à votre appel offre " + appelOffre.getTitreAo());
                 notification.setUsernameSender(candidatureOptional.get().getUsername());
                 notification.setUsernameReceiver(appelOffre.getEsn().getEsnUsernameRepresentant());
                 notificationRepository.save(notification);
+
                 return new ResponseEntity<>("done", HttpStatus.OK);
             } catch (Exception ex) {
                 return new ResponseEntity<>("error", HttpStatus.BAD_REQUEST);
