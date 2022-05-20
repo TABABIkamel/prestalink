@@ -43,10 +43,12 @@ public class AppelOffreService {
         else{
             return new ResponseEntity<>(appelOffres.stream()
                     .map(appelOffre -> {
-                        AppelOffreDto a= mapper.appelOffreToAppelOffreDTO(appelOffre.get());
-                        a.setEsnImage(appelOffre.get().getEsn().getLocationImage());
-                        a.setEsnNom(appelOffre.get().getEsn().getEsnnom());
-                        return a;
+                        if(appelOffre.isPresent()) {
+                            var a = mapper.appelOffreToAppelOffreDTO(appelOffre.get());
+                            a.setEsnImage(appelOffre.get().getEsn().getLocationImage());
+                            a.setEsnNom(appelOffre.get().getEsn().getEsnnom());
+                            return a;
+                        }else return null;
                     })
                     .collect(Collectors.toList()), HttpStatus.OK);
         }
@@ -57,12 +59,13 @@ public class AppelOffreService {
             Optional<CandidatureFinished> candidatureFinished = Optional.ofNullable(candidatureFinishedRepository.findByIdTask(contrat.getIdCandidature()));
             Optional<AppelOffre> appelOffre = Optional.ofNullable(appellOffreRepository.findByRefAo(contrat.getRefAo()));
             JasperPrint jasper = appelOffreBean.generateContract(contrat, appelOffre);
-            appelOffreBean.storeContratSousFs(givenName, jasper, candidatureFinished, contrat);
-            String contratUrl = appelOffreBean.uploadFileToCloudinary(givenName, contrat);
+            String contratUrl = appelOffreBean.uploadFileToCloudinary(jasper,givenName, contrat);
             appelOffreBean.sendMailToInternautes(contratUrl, candidatureFinished, appelOffre);
             Optional<Prestataire> optionalPrestataire=Optional.ofNullable(new Prestataire());
             if(candidatureFinished.isPresent()){
                 optionalPrestataire = Optional.ofNullable(prestataireRepository.findByPrestataireUsername(candidatureFinished.get().getUsername()));
+                candidatureFinished.get().setHasContract(true);
+                candidatureFinishedRepository.save(candidatureFinished.get());
             }
             if(appelOffre.isPresent() && optionalPrestataire.isPresent()) {
                 appelOffreBean.createMission(contratUrl, appelOffre,optionalPrestataire, Optional.empty());
@@ -85,7 +88,7 @@ public class AppelOffreService {
         } else
             return new ResponseEntity<>(allAppelOffre.stream()
                     .map(ao -> {
-                        AppelOffreDto appelOffreDto = mapper.appelOffreToAppelOffreDTO(ao);
+                        var appelOffreDto = mapper.appelOffreToAppelOffreDTO(ao);
                         appelOffreDto.setEsnImage(ao.getEsn().getLocationImage());
                         appelOffreDto.setEsnNom(ao.getEsn().getEsnnom());
                         appelOffreDto.setEsnUsernameRepresentant(ao.getEsn().getEsnUsernameRepresentant());
@@ -108,11 +111,11 @@ public class AppelOffreService {
     }
 
     public ResponseEntity<AppelOffreDto> createAo(AppelOffreDto appelOffreDto, String username) {
-        Esn esn = esnRepository.findByEsnUsernameRepresentant(username);
+        var esn = esnRepository.findByEsnUsernameRepresentant(username);
         Optional<AppelOffre> appelOffre = Optional.ofNullable(mapper.appelOffreDTOtoAppelOffre(appelOffreDto));
         if (appelOffre.isPresent()) {
             appelOffre.get().setEsn(esn);
-            AppelOffre appelOffreSaved = appellOffreRepository.save(appelOffre.get());
+            var appelOffreSaved = appellOffreRepository.save(appelOffre.get());
             appelOffreSaved.setRefAo("AO_" + appelOffreSaved.getId());
             appellOffreRepository.save(appelOffreSaved);
             return new ResponseEntity<>(mapper.appelOffreToAppelOffreDTO(appelOffreSaved),HttpStatus.CREATED) ;
@@ -121,11 +124,11 @@ public class AppelOffreService {
     }
 
     public ResponseEntity<AppelOffreDto> editAo(AppelOffreDto appelOffreDto, String username) {
-        Esn esn = esnRepository.findByEsnUsernameRepresentant(username);
+        var esn = esnRepository.findByEsnUsernameRepresentant(username);
         Optional<AppelOffre> appelOffre = Optional.ofNullable(mapper.appelOffreDTOtoAppelOffre(appelOffreDto));
         if (appelOffre.isPresent()) {
             appelOffre.get().setEsn(esn);
-            AppelOffre appelOffreSaved = appellOffreRepository.save(appelOffre.get());
+            var appelOffreSaved = appellOffreRepository.save(appelOffre.get());
             return new ResponseEntity<>(mapper.appelOffreToAppelOffreDTO(appelOffreSaved),HttpStatus.CREATED) ;
         } else
             return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
@@ -246,22 +249,6 @@ public class AppelOffreService {
                             return new ContratResponse(urlContract.getUrlContrat(),urlContract.getMission().getAppelOffre().getTitreAo(),esnOptional.get().getEsnnom());
                         }
                     }).collect(Collectors.toList()));
-//            for (UrlContract urlContrat:urlContracts
-//            ) {
-////                String url=urlContrat.getUrlContrat();
-////                System.out.println(urlContrat.getUrlContrat());
-//                urlsContrat.put("esn",urlContrat.getUrlContrat());
-//            }
-//            prestataire.get().getAppelOffres().stream()
-//                    .map(appelOffre -> appelOffre.getMissions()
-//                            .stream().map(mission -> mission.getUrlsContrat()
-//                                    .stream().map(urlContract ->{
-//                                        String url=urlContract.getUrlContrat();
-//                                        urlsContrat.add(urlContract.getUrlContrat());
-//                                        System.out.println(url);
-//                                    return urlContract.getUrlContrat();
-//
-//                                    })));
             return new ResponseEntity<>(responseContrats,HttpStatus.OK);
         }
         else

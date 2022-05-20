@@ -1,0 +1,63 @@
+version: "3.4"
+services:
+  ms-ao:
+    ports:
+      - "8089:8089"
+    image: "ms-ao:latest"
+    build: C:\Users\stagiaire 10\Desktop\src\ao-service\ao-service
+    networks:
+      - prestalink
+    restart: unless-stopped
+    depends_on:
+      - keycloak
+      - config
+      - mysqldb
+      - Euruka
+      - gateway
+  gateway:
+    image: "ms-gateway:latest"
+    build: C:\Users\stagiaire 10\Desktop\src\gateway\gateway
+    ports:
+      - "8765:8765"
+    networks:
+      - prestalink
+    restart: unless-stopped
+    depends_on:
+      - Euruka
+  mysqldb:
+    image: "mysql:latest"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=flowable-spring-boot
+    networks:
+      - prestalink
+    ports:
+      - 3306:3306
+  Euruka:
+    ports:
+      - "8761:8761"
+    image: "ms-eureka:latest"
+    build: C:\Users\stagiaire 10\Desktop\src\eureka-server\eureka-server
+    networks:
+      - prestalink
+  config:
+    ports:
+      - "8888:8888"
+    image: "ms-config:latest"
+    build: C:\Users\stagiaire 10\Desktop\src\config-server\config-server
+    networks:
+      - prestalink
+  keycloak:
+    image: jboss/keycloak
+    restart: unless-stopped
+    environment:
+      KEYCLOAK_VERSION: 6.0.1
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+    ports:
+      - "8090:8080"
+    networks:
+      - prestalink
+networks:
+  prestalink:
+

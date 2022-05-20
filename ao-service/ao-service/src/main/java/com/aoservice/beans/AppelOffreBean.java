@@ -7,6 +7,11 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.export.JRPdfExporter;
+import net.sf.jasperreports.engine.export.JRXlsExporter;
+import net.sf.jasperreports.engine.export.JRXlsExporterParameter;
+import net.sf.jasperreports.export.SimpleExporterInput;
+import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -14,12 +19,8 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring4.SpringTemplateEngine;
-
 import javax.mail.MessagingException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -80,8 +81,13 @@ public class AppelOffreBean {
     }
 
     public JasperPrint generateContract(ContratDto contrat, Optional<AppelOffre> appelOffre) throws FileNotFoundException, JRException {
+        System.out.println("14");
         var jrBeanCollectionDataSource = new JRBeanCollectionDataSource(Arrays.asList(new Approval(false)));
-        JasperReport compile = JasperCompileManager.compileReport(new FileInputStream("src/main/resources/jaspertest.jrxml"));
+        System.out.println("15");
+        ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+        InputStream inputStream = classloader.getResourceAsStream("jaspertest.jrxml");
+        JasperReport compile = JasperCompileManager.compileReport(inputStream);
+        System.out.println("jasper report inside generete bean"+compile);
         Map<String, Object> map = new HashMap<>();
         map.put("title", "jasper test wiw");
         map.put("minSalary", 1000);
@@ -113,32 +119,13 @@ public class AppelOffreBean {
 
 
     }
-    public void storeContratSousFs(String givenName,JasperPrint jasper,Optional<CandidatureFinished> candidatureFinished,ContratDto contrat) throws JRException {
-        var path="C:/prestalink/";
-        var path1="/contract_";
-        var outDir = new File(path + givenName);
-        outDir.mkdirs();
-            JasperExportManager.exportReportToPdfFile(jasper,
-                    path+ givenName + path1 + contrat.getRefAo() + "_" + contrat.getNomPrestataire() + "_" + contrat.getPrenomPrestataire() + ".pdf");
-            var contratFile = FileUtils.getFile(path + givenName + path1 + contrat.getRefAo() + "_" + contrat.getNomPrestataire() + "_" + contrat.getPrenomPrestataire() + ".pdf");
-
-            /*System.out.println("Done!");*/
-            if(candidatureFinished.isPresent()){
-                candidatureFinished.get().setHasContract(true);
-                candidatureFinishedRepository.save(candidatureFinished.get());
-            }
-    }
-
-    public String uploadFileToCloudinary(String givenName,ContratDto contrat) throws IOException {
-        var path="C:/prestalink/";
-        var path1="/contract_";
-        var contratFile = FileUtils.getFile(path + givenName + path1 + contrat.getRefAo() + "_" + contrat.getNomPrestataire() + "_" + contrat.getPrenomPrestataire() + ".pdf");
+    public String uploadFileToCloudinary(JasperPrint jasper,String givenName,ContratDto contrat) throws IOException, JRException {
+        byte[] output = JasperExportManager.exportReportToPdf(jasper);
         var cloudinary = new Cloudinary(ObjectUtils.asMap(
                 "cloud_name", "dhum7apjy",
                 "api_key", "265837847724928",
                 "api_secret", "CVKzJr7cldr0au9oFSh6t3mGqzw"));
-        Map uploadResult = cloudinary.uploader().upload(contratFile, ObjectUtils.emptyMap());
-       /* System.out.println(uploadResult.get("url"));*/
+        Map uploadResult = cloudinary.uploader().upload(output, ObjectUtils.asMap("public_id_1", "sample_id"));
         return uploadResult.get("url").toString();
     }
     public void sendMailToInternautes(String contratUrl,Optional<CandidatureFinished> candidatureFinished,Optional<AppelOffre> appelOffre){
