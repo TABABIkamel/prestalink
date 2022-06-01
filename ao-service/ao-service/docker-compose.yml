@@ -3,8 +3,10 @@ services:
   ms-ao:
     ports:
       - "8089:8089"
-    image: "ms-ao:latest"
-    build: C:\Users\stagiaire 10\Desktop\src\ao-service\ao-service
+    image: "1901199891/ms-appel-offre"
+    mem_limit: 900m
+    environment:
+      - SPRING.ZIPKIN.BASEURL=http://zipkin-server:9411/
     networks:
       - prestalink
     restart: unless-stopped
@@ -15,17 +17,21 @@ services:
       - Euruka
       - gateway
   gateway:
-    image: "ms-gateway:latest"
-    build: C:\Users\stagiaire 10\Desktop\src\gateway\gateway
+    image: "1901199891/ms-api-gateway"
+    mem_limit: 300m
     ports:
       - "8765:8765"
+    environment:
+      - SPRING.ZIPKIN.BASEURL=http://zipkin-server:9411/
     networks:
       - prestalink
     restart: unless-stopped
     depends_on:
+      - config
       - Euruka
   mysqldb:
     image: "mysql:latest"
+    mem_limit: 300m
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=flowable-spring-boot
@@ -36,19 +42,20 @@ services:
   Euruka:
     ports:
       - "8761:8761"
-    image: "ms-eureka:latest"
-    build: C:\Users\stagiaire 10\Desktop\src\eureka-server\eureka-server
+    image: "1901199891/ms-eureka"
+    mem_limit: 300m
     networks:
       - prestalink
   config:
     ports:
       - "8888:8888"
-    image: "ms-config:latest"
-    build: C:\Users\stagiaire 10\Desktop\src\config-server\config-server
+    image: "1901199891/ms-config"
+    mem_limit: 300m
     networks:
       - prestalink
   keycloak:
     image: jboss/keycloak
+    mem_limit: 300m
     restart: unless-stopped
     environment:
       KEYCLOAK_VERSION: 6.0.1
@@ -58,6 +65,50 @@ services:
       - "8090:8080"
     networks:
       - prestalink
+  chrome:
+    image: selenium/standalone-chrome:4.1.0
+    hostname: chrome
+    shm_size: 2g
+    ports:
+      - "4444:4444"
+      - "7900:7900"
+    networks:
+      - prestalink
+    restart: unless-stopped
+  ms-search-linkedin:
+    image: 1901199891/ms-linkedin-search
+    command: python -u app.py
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+      - chrome
+      - Euruka
+      - keycloak
+    networks:
+      - prestalink
+  db:
+    image: mongo:latest
+    mem_limit: 300m
+    restart: unless-stopped
+    volumes:
+      - db-data:/data/db
+      - ./mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh
+    ports:
+      - "27017:27017"
+    networks:
+      - prestalink
+  zipkin-server:
+    image: openzipkin/zipkin:2.23
+    mem_limit: 300m
+    restart: unless-stopped
+    ports:
+      - "9411:9411"
+    networks:
+      - prestalink
+volumes:
+  db-data:
 networks:
   prestalink:
 
