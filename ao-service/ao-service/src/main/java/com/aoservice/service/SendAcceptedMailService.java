@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 @Service("sendAcceptedMailService")
 public class SendAcceptedMailService implements JavaDelegate {
-
     private static PrestataireRepository prestataireRepository;
     private static SpringTemplateEngine templateEngine;
 

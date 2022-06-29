@@ -1,5 +1,11 @@
 version: "3.4"
 services:
+  prestalink-front:
+    image: "1901199891/prestalink-front"
+    networks:
+      - prestalink
+    ports:
+      - 4200:80
   ms-ao:
     ports:
       - "8089:8089"
@@ -76,7 +82,7 @@ services:
       - prestalink
     restart: unless-stopped
   ms-search-linkedin:
-    image: 1901199891/ms-linkedin-search
+    image: 1901199891/ms-linkedin-searchh
     command: python -u app.py
     restart: unless-stopped
     ports:
